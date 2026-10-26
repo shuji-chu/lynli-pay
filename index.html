@@ -2,72 +2,65 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>晴天支付 - 多商户聚合支付平台</title>
   <link rel="icon" href="assets/favicon.png">
-  <link rel="stylesheet" href="assets/style.css">
-  
-  <!-- 强制内联，彻底防止缓存覆盖 -->
+  <link rel="stylesheet" href="assets/style.css?v=99">
   <style>
-    /* 桌面端样式恢复 */
-    .hero { display: flex; align-items: center; justify-content: space-between; max-width: 1200px; margin: 80px auto; padding: 0 24px; gap: 60px; }
-    .hero-text { flex: 1; max-width: 540px; }
-    .hero-text h1 { font-size: 56px; line-height: 1.15; font-weight: 800; color: #111; margin-bottom: 24px; letter-spacing: -1px; }
-    .hero-text h1 span { color: var(--primary); background: linear-gradient(90deg, #0a66ff, #00a3ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    .hero-text p { font-size: 18px; color: var(--text-muted); margin-bottom: 40px; line-height: 1.7; }
-    .hero-actions { display: flex; gap: 16px; }
-    .hero-visual { flex: 1; position: relative; }
-    .glow { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 400px; height: 400px; background: radial-gradient(circle, rgba(10,102,255,0.15) 0%, rgba(255,255,255,0) 70%); z-index: -1; }
-    .mockup { background: #fff; border-radius: 16px; box-shadow: 0 24px 48px -12px rgba(0,0,0,0.1); border: 1px solid var(--border-color); padding: 24px; }
-    .query-box { display: flex; gap: 12px; margin-top: 16px; }
+    /* 强制内联覆盖，无视任何外部 css 干扰 */
+    body { background: #f4f6f8; font-family: -apple-system, sans-serif; margin: 0; }
+    .header { display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; background: #fff; border-bottom: 1px solid #eee; position: sticky; top: 0; z-index: 1000;}
+    .logo { display: flex; align-items: center; gap: 10px; }
+    .logo img { width: 36px; height: 36px; border-radius: 8px; }
+    .logo-text h1 { margin: 0; font-size: 18px; color: #111; }
+    .menu-toggle { font-size: 24px; cursor: pointer; color: #111; display: none; }
+    .nav-links { display: flex; gap: 24px; }
+    .nav-links a { text-decoration: none; color: #666; font-size: 14px; font-weight: 500; }
+    .nav-links a.active { color: #0a66ff; }
+    .btn-header { background: #111; color: #fff; text-decoration: none; padding: 8px 16px; border-radius: 8px; font-size: 14px; }
 
-    /* 暴力修复移动端菜单 (防所有覆盖) */
+    /* 页面主内容 */
+    .main { max-width: 900px; margin: 0 auto; padding: 30px 20px; text-align: center; }
+    .main h1 { font-size: 40px; line-height: 1.2; margin-bottom: 20px; color: #111; }
+    .main h1 span { color: #0a66ff; }
+    .main p { color: #666; font-size: 16px; line-height: 1.6; }
+
+    /* 手机端极简全屏菜单 */
     @media (max-width: 768px) {
       .nav-links { display: none; }
       .btn-header { display: none; }
-      .menu-toggle { display: block; font-size: 24px; cursor: pointer; color: #111; }
+      .menu-toggle { display: block; }
       
-      /* 当加上 mobile-show 类名时，变成全屏白色 */
       .nav-links.mobile-show {
         display: flex !important;
         flex-direction: column !important;
         position: fixed !important;
-        top: 72px !important; 
+        top: 61px !important; 
         left: 0 !important; 
         right: 0 !important; 
         bottom: 0 !important;
-        background: #ffffff !important; /* 强制纯白，绝不透明 */
-        z-index: 99999 !important; /* 绝对置顶 */
-        padding: 24px !important;
+        background: #ffffff !important;
+        z-index: 9999 !important;
+        padding: 20px !important;
         margin: 0 !important;
-        gap: 0 !important;
-        border-top: 1px solid #eee;
       }
-      
       .nav-links.mobile-show a {
         display: block !important;
         width: 100% !important;
         font-size: 18px !important;
-        padding: 20px 0 !important;
-        border-bottom: 1px solid #f0f0f0 !important;
-        color: #333 !important;
+        padding: 16px 0 !important;
+        border-bottom: 1px solid #eee !important;
         text-align: left !important;
       }
-      
-      .hero { flex-direction: column; margin: 40px auto; padding: 0 20px; gap: 40px; text-align: center; }
-      .hero-text h1 { font-size: 40px; }
-      .hero-actions { justify-content: center; }
-      .query-box { flex-direction: column; }
-      .query-box button { width: 100%; }
     }
   </style>
 </head>
 <body>
   <div class="header">
-    <div class="logo"><img src="assets/logo.png" alt="晴天支付"><div class="logo-text"><h1>晴天支付</h1></div></div>
+    <div class="logo">
+      <img src="assets/logo.png" alt="晴天支付">
+      <div class="logo-text"><h1>晴天支付</h1></div>
+    </div>
     
     <div class="nav-links" id="navLinks">
       <a href="index.html" class="active">首页</a>
@@ -77,29 +70,12 @@
     </div>
     
     <a href="login.html" class="btn-header">商户入驻</a>
-    
-    <!-- 点击后切换类名 -->
     <div class="menu-toggle" onclick="document.getElementById('navLinks').classList.toggle('mobile-show')">☰</div>
   </div>
 
-  <main>
-    <div class="hero">
-      <div class="hero-text">
-        <div style="display: inline-block; background: var(--primary-light); color: var(--primary); padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; margin-bottom: 24px;">与 Lynli 生态同源统一账号</div>
-        <h1>一笔资金，<br><span>晴天直达</span></h1>
-        <p>多商户聚合支付平台：复用统一用户体系，审批即得专属支付标识 app_id / app_secret。支持支付宝双通道收款，秒级到账、在线提现。</p>
-        <div class="hero-actions"><a href="login.html" class="btn-primary">立即入驻</a><a href="docs.html" class="btn-outline" style="line-height: normal;">阅读文档</a></div>
-      </div>
-      <div class="hero-visual">
-        <div class="glow"></div>
-        <div class="mockup">
-          <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px; color: #111;">查询订单状态</div>
-          <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px;">输入商户订单号，实时获取支付结果。</p>
-          <div class="query-box"><input type="text" id="queryOrder" placeholder="输入商户订单号"><button class="btn-primary" onclick="toast('查询功能开发中')">查询</button></div>
-        </div>
-      </div>
-    </div>
-  </main>
-  <script src="assets/api.js"></script>
+  <div class="main">
+    <h1>一笔资金，<br><span>晴天直达</span></h1>
+    <p>多商户聚合支付平台：复用统一用户体系，审批即得专属支付标识。<br>支持支付宝双通道收款，秒级到账、在线提现。</p>
+  </div>
 </body>
 </html>
