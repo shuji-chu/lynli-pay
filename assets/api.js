@@ -39,3 +39,24 @@ function logout() {
     clearToken();
     window.location.href = 'login.html';
 }
+
+// ==========================================
+// 新增：上传头像专用请求 (multipart/form-data)
+// ==========================================
+async function uploadAvatar(file) {
+    const formData = new FormData();
+    formData.append('avatar', file);
+
+    const headers = {};
+    if (getToken()) headers["Authorization"] = "Bearer " + getToken();
+    // 注意：上传文件时绝对不能手动设置 Content-Type，浏览器会自动加上 boundary
+
+    const res = await fetch(API_BASE + '/user/avatar', {
+        method: "POST",
+        headers: headers,
+        body: formData
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || data.msg || "上传失败");
+    return data;
+}

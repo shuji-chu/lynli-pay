@@ -6,11 +6,30 @@
   <title>晴天支付 - 多商户聚合支付平台</title>
   <link rel="icon" href="assets/favicon.png">
   <link rel="stylesheet" href="assets/style.css">
+  <style>
+    .hero { display: flex; align-items: center; justify-content: space-between; max-width: 1200px; margin: 80px auto; padding: 0 24px; gap: 60px; }
+    .hero-text { flex: 1; max-width: 540px; }
+    .hero-text h1 { font-size: 56px; line-height: 1.15; font-weight: 800; color: #111; margin-bottom: 24px; letter-spacing: -1px; }
+    .hero-text h1 span { color: var(--primary); background: linear-gradient(90deg, #0a66ff, #00a3ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .hero-text p { font-size: 18px; color: var(--text-muted); margin-bottom: 40px; line-height: 1.7; }
+    .hero-actions { display: flex; gap: 16px; }
+    .hero-visual { flex: 1; position: relative; }
+    .glow { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 400px; height: 400px; background: radial-gradient(circle, rgba(10,102,255,0.15) 0%, rgba(255,255,255,0) 70%); z-index: -1; }
+    .mockup { background: #fff; border-radius: 16px; box-shadow: 0 24px 48px -12px rgba(0,0,0,0.1); border: 1px solid var(--border-color); padding: 24px; }
+    .query-box { display: flex; gap: 12px; margin-top: 16px; }
+    @media (max-width: 768px) {
+      .hero { flex-direction: column; margin: 40px auto; padding: 0 20px; gap: 40px; text-align: center; }
+      .hero-text h1 { font-size: 40px; }
+      .hero-actions { justify-content: center; }
+      .query-box { flex-direction: column; }
+      .query-box button { width: 100%; }
+    }
+  </style>
 </head>
 <body>
   <div class="header">
     <div class="logo">
-      <img src="assets/logo.png" alt="晴天支付" style="width: 36px; height: 36px; border-radius: 8px; object-fit: cover;">
+      <img src="assets/logo.png" alt="晴天支付">
       <div class="logo-text"><h1>晴天支付</h1></div>
     </div>
     <div class="nav-links" id="navLinks">
@@ -22,25 +41,31 @@
     <a href="login.html" class="btn-header">商户入驻</a>
     <div class="menu-toggle" onclick="document.getElementById('navLinks').classList.toggle('mobile-show')">☰</div>
   </div>
-  <main style="max-width: 900px; margin: 0 auto; padding: 30px 20px;">
-    <div style="text-align: center; margin-top: 40px;">
-      <div style="display: inline-block; background: #eef3ff; color: #0a66ff; padding: 6px 16px; border-radius: 20px; font-size: 13px; margin-bottom: 20px;">
-        与 Lynli 生态同源统一账号
+
+  <main>
+    <div class="hero">
+      <div class="hero-text">
+        <div style="display: inline-block; background: var(--primary-light); color: var(--primary); padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; margin-bottom: 24px;">
+          与 Lynli 生态同源统一账号
+        </div>
+        <h1>一笔资金，<br><span>晴天直达</span></h1>
+        <p>多商户聚合支付平台：复用统一用户体系，审批即得专属支付标识 app_id / app_secret。支持支付宝双通道收款，秒级到账、在线提现。</p>
+        <div class="hero-actions">
+          <a href="login.html" class="btn-primary">立即入驻</a>
+          <a href="docs.html" class="btn-outline" style="line-height: normal;">阅读文档</a>
+        </div>
       </div>
-      <h1 style="font-size: 36px; line-height: 1.2; margin-bottom: 20px; color: #111;">
-        <span style="display: block;">一笔资金，</span>
-        <span style="display: block; color: #0a66ff;">晴天直达</span>
-      </h1>
-      <p style="color: #666; font-size: 15px; max-width: 600px; margin: 0 auto 40px; line-height: 1.6;">
-        多商户聚合支付平台：复用 Lynli 统一用户体系，审批即得专属支付标识 app_id / app_secret。<br>
-        支付宝、USDT 双通道收款，固定 10% 费率，余额秒级到账、在线提现。
-      </p>
-    </div>
-    <div class="card" style="max-width: 600px; margin: 0 auto;">
-      <h3 style="margin-bottom: 20px; font-size: 16px;">查询订单状态</h3>
-      <div style="display: flex; gap: 10px;">
-        <input type="text" id="queryOrder" placeholder="输入商户订单号查询" style="flex: 1;">
-        <button class="btn-primary" style="white-space: nowrap;" onclick="toast('查询功能开发中')">查询</button>
+      
+      <div class="hero-visual">
+        <div class="glow"></div>
+        <div class="mockup">
+          <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px; color: #111;">查询订单状态</div>
+          <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px;">输入商户订单号，实时获取支付结果。</p>
+          <div class="query-box">
+            <input type="text" id="queryOrder" placeholder="输入商户订单号">
+            <button class="btn-primary" onclick="toast('查询功能开发中')">查询</button>
+          </div>
+        </div>
       </div>
     </div>
   </main>

@@ -6,6 +6,12 @@
   <title>商户中心 - 晴天支付</title>
   <link rel="icon" href="assets/favicon.png">
   <link rel="stylesheet" href="assets/style.css">
+  <style>
+    .avatar-container { position: relative; cursor: pointer; display: inline-block; }
+    .avatar-img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid #eee; }
+    .avatar-default { width: 40px; height: 40px; border-radius: 50%; background: #eef3ff; display: flex; align-items: center; justify-content: center; color: #0a66ff; font-size: 20px; }
+    .avatar-uploading { opacity: 0.5; }
+  </style>
 </head>
 <body>
   <div class="header">
@@ -19,9 +25,15 @@
       <a href="merchant.html" class="active">商户中心</a>
       <a href="support.html">帮助支持</a>
     </div>
-    <a href="login.html" class="btn-header">商户入驻</a>
-    <div class="menu-toggle" onclick="document.getElementById('navLinks').classList.toggle('mobile-show')">☰</div>
+    
+    <!-- 新增：全局头像展示与上传入口 -->
+    <div class="avatar-container" onclick="document.getElementById('avatarInput').click()">
+      <img id="avatarImg" class="avatar-img" src="" style="display: none;">
+      <div id="avatarDefault" class="avatar-default">👤</div>
+      <input type="file" id="avatarInput" style="display: none;" accept="image/*" onchange="handleAvatarUpload(event)">
+    </div>
   </div>
+
   <div class="dashboard">
     <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
     <div class="sidebar" id="sidebar">
@@ -61,26 +73,71 @@
       </div>
     </div>
   </div>
+  
   <script src="assets/api.js"></script>
   <script>
     if (!getToken()) {
       window.location.href = 'login.html';
     }
+    
     function toggleMenu() {
       document.getElementById('sidebar').classList.toggle('open');
       document.getElementById('overlay').classList.toggle('show');
     }
+
+    // 加载商户信息及头像
     (async function loadMerchantInfo() {
       try {
         const res = await apiFetch('/payplat/merchant/info', {});
         const d = (res && res.data) || {};
         document.getElementById('mch-id').value = d.mch_id || '未配置';
         document.getElementById('mch-key').value = d.mch_key || '未配置';
+        
+        // 如果后端返回了头像URL
+        if (d.avatar_url) {
+            document.getElementById('avatarImg').src = d.avatar_url;
+            document.getElementById('avatarImg').style.display = 'block';
+            document.getElementById('avatarDefault').style.display = 'none';
+        }
       } catch (e) {
         document.getElementById('mch-id').value = '接口未就绪';
         document.getElementById('mch-key').value = '接口未就绪';
       }
     })();
+
+    // 处理头像上传
+    async function handleAvatarUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      
+      // 前端限制：最大 2MB，只能是图片
+      if (file.size > 2 * 1024 * 1024) return toast('图片不能超过 2MB', true);
+      if (!file.type.startsWith('image/')) return toast('请选择图片文件', true);
+
+      // 1. 本地极速预览
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        document.getElementById('avatarImg').src = evt.target.result;
+        document.getElementById('avatarImg').style.display = 'block';
+        document.getElementById('avatarDefault').style.display = 'none';
+        document.getElementById('avatarImg').classList.add('avatar-uploading');
+      };
+      reader.readAsDataURL(file);
+
+      // 2. 上传到后端
+      try {
+        toast('正在上传...');
+        // 调用 api.js 里的 uploadAvatar
+        const res = await uploadAvatar(file);
+        toast('头像更新成功');
+        document.getElementById('avatarImg').classList.remove('avatar-uploading');
+      } catch (err) {
+        toast('上传失败: ' + err.message, true);
+        // 如果失败，重新加载原来的头像（此处略，刷新页面即可恢复）
+      }
+      // 清空 input 允许重复上传同一张图
+      e.target.value = '';
+    }
   </script>
 </body>
 </html>

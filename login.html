@@ -6,11 +6,19 @@
   <title>商户登录 - 晴天支付</title>
   <link rel="icon" href="assets/favicon.png">
   <link rel="stylesheet" href="assets/style.css">
+  <style>
+    body { background: #f0f4f8; display: flex; flex-direction: column; min-height: 100vh; }
+    .login-wrap { flex: 1; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .login-card { width: 100%; max-width: 440px; background: #fff; border-radius: 16px; padding: 40px; box-shadow: 0 20px 40px -10px rgba(0,0,0,0.08); }
+    .tabs { display: flex; border-bottom: 1px solid var(--border-color); margin-bottom: 32px; }
+    .tab { flex: 1; text-align: center; padding: 16px; cursor: pointer; font-size: 16px; color: var(--text-muted); transition: all 0.2s; }
+    .tab.active { color: var(--primary); font-weight: 600; border-bottom: 2px solid var(--primary); }
+  </style>
 </head>
 <body>
   <div class="header">
     <div class="logo">
-      <img src="assets/logo.png" alt="晴天支付" style="width: 36px; height: 36px; border-radius: 8px; object-fit: cover;">
+      <img src="assets/logo.png" alt="晴天支付">
       <div class="logo-text"><h1>晴天支付</h1></div>
     </div>
     <div class="nav-links" id="navLinks">
@@ -19,40 +27,41 @@
       <a href="merchant.html">商户中心</a>
       <a href="support.html">帮助支持</a>
     </div>
-    <a href="login.html" class="btn-header">商户入驻</a>
+    <a href="login.html" class="btn-header" style="display:none;">商户入驻</a>
     <div class="menu-toggle" onclick="document.getElementById('navLinks').classList.toggle('mobile-show')">☰</div>
   </div>
-  <div class="card" style="max-width: 420px; margin: 60px auto; padding: 30px;">
-    <div style="display: flex; border-bottom: 1px solid #eee; margin-bottom: 20px;">
-      <div id="tab-login" class="tab active" onclick="switchTab('login')" style="flex:1;text-align:center;padding:12px;cursor:pointer;font-weight:bold;color:#0a66ff;border-bottom:2px solid #0a66ff;">登录</div>
-      <div id="tab-reg" class="tab" onclick="switchTab('reg')" style="flex:1;text-align:center;padding:12px;cursor:pointer;color:#666;">注册入驻</div>
-    </div>
-    <div class="form-group"><label>邮箱</label><input type="email" id="email" placeholder="you@example.com"></div>
-    <div class="form-group"><label>密码</label><input type="password" id="password" placeholder="至少 6 位密码"></div>
-    <div id="code-group" class="form-group" style="display: none;">
-      <label>邮箱验证码</label>
-      <div style="display: flex; gap: 10px;">
-        <input type="text" id="code" placeholder="6位验证码" style="flex:1;">
-        <button id="btn-send" onclick="sendCode()" class="btn-primary" style="padding: 0 15px; white-space: nowrap; background:#fff; color:#0a66ff; border:1px solid #0a66ff;">获取验证码</button>
+
+  <div class="login-wrap">
+    <div class="login-card">
+      <div class="tabs">
+        <div id="tab-login" class="tab active" onclick="switchTab('login')">账号登录</div>
+        <div id="tab-reg" class="tab" onclick="switchTab('reg')">商户入驻</div>
       </div>
+
+      <div class="form-group"><label>邮箱地址</label><input type="email" id="email" placeholder="you@example.com"></div>
+      <div class="form-group"><label>登录密码</label><input type="password" id="password" placeholder="至少 6 位密码"></div>
+
+      <div id="code-group" class="form-group" style="display: none;">
+        <label>邮箱验证码</label>
+        <div style="display: flex; gap: 12px;">
+          <input type="text" id="code" placeholder="6位验证码" style="flex:1;">
+          <button id="btn-send" onclick="sendCode()" class="btn-outline" style="padding: 0 20px; white-space: nowrap;">获取验证码</button>
+        </div>
+      </div>
+
+      <button id="btn-submit" onclick="submitAuth()" class="btn-primary" style="width: 100%; margin-top: 12px; padding: 14px;">立即登录</button>
     </div>
-    <button id="btn-submit" onclick="submitAuth()" class="btn-primary" style="width: 100%; margin-top: 10px;">登 录</button>
   </div>
+
   <script src="assets/api.js"></script>
   <script>
     let isLogin = true;
     function switchTab(type) {
       isLogin = (type === 'login');
-      const tabL = document.getElementById('tab-login');
-      const tabR = document.getElementById('tab-reg');
-      tabL.style.color = isLogin ? '#0a66ff' : '#666';
-      tabL.style.borderBottom = isLogin ? '2px solid #0a66ff' : 'none';
-      tabL.style.fontWeight = isLogin ? 'bold' : 'normal';
-      tabR.style.color = !isLogin ? '#0a66ff' : '#666';
-      tabR.style.borderBottom = !isLogin ? '2px solid #0a66ff' : 'none';
-      tabR.style.fontWeight = !isLogin ? 'bold' : 'normal';
+      document.getElementById('tab-login').className = isLogin ? 'tab active' : 'tab';
+      document.getElementById('tab-reg').className = !isLogin ? 'tab active' : 'tab';
       document.getElementById('code-group').style.display = isLogin ? 'none' : 'block';
-      document.getElementById('btn-submit').textContent = isLogin ? '登 录' : '注册并入驻';
+      document.getElementById('btn-submit').textContent = isLogin ? '立即登录' : '注册并入驻';
     }
     let timer = null;
     async function sendCode() {
@@ -99,7 +108,7 @@
         setTimeout(() => window.location.href = 'merchant.html', 800);
       } catch (e) {
         toast(e.message, true);
-        btn.disabled = false; btn.textContent = isLogin ? '登 录' : '注册并入驻';
+        btn.disabled = false; btn.textContent = isLogin ? '立即登录' : '注册并入驻';
       }
     }
   </script>
