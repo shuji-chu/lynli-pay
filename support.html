@@ -1,32 +1,23 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>帮助支持 - 晴天支付</title>
-  <link rel="icon" href="assets/favicon.png">
-  <link rel="stylesheet" href="assets/style.css">
+  <link rel="icon" href="assets/favicon.png"><link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
   <div class="header">
-    <div class="logo">
-      <img src="assets/logo.png" alt="晴天支付" style="width: 36px; height: 36px; border-radius: 8px; object-fit: cover;">
-      <div class="logo-text"><h1>晴天支付</h1></div>
-    </div>
-    <div class="nav-links" id="navLinks">
-      <a href="index.html">首页</a>
-      <a href="docs.html">开发者文档</a>
-      <a href="merchant.html">商户中心</a>
-      <a href="support.html" class="active">帮助支持</a>
-    </div>
+    <div class="logo"><img src="assets/logo.png" alt="晴天支付"><div class="logo-text"><h1>晴天支付</h1></div></div>
+    <div class="nav-links" id="navLinks"><a href="index.html">首页</a><a href="docs.html">开发者文档</a><a href="merchant.html">商户中心</a><a href="support.html" class="active">帮助支持</a></div>
     <a href="login.html" class="btn-header">商户入驻</a>
     <div class="menu-toggle" onclick="document.getElementById('navLinks').classList.toggle('mobile-show')">☰</div>
   </div>
-  <main style="max-width: 900px; margin: 30px auto; padding: 0 20px;">
-    <div class="card">
-      <h2 style="margin-bottom: 20px;">帮助与支持</h2>
-      <p style="color: #666; margin-bottom: 10px;">如有问题，请联系平台客服：</p>
-      <p>Telegram: @lynli_support</p>
+  <main style="max-width: 600px; margin: 80px auto; padding: 0 24px;">
+    <div class="card" style="text-align: center; padding: 60px 32px;">
+      <div style="width: 64px; height: 64px; background: var(--primary-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; color: var(--primary); font-size: 28px;">💬</div>
+      <h2 style="margin-bottom: 16px; font-size: 24px;">联系客服</h2>
+      <p style="color: var(--text-muted); margin-bottom: 32px;">如果在接入或使用过程中遇到任何问题，请随时联系我们。</p>
+      <a href="https://t.me/cc1314" target="_blank" class="btn-primary" style="width: 100%; padding: 14px;">Telegram 在线客服</a>
     </div>
   </main>
   <script src="assets/api.js"></script>

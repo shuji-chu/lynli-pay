@@ -1,32 +1,37 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>开发者文档 - 晴天支付</title>
-  <link rel="icon" href="assets/favicon.png">
-  <link rel="stylesheet" href="assets/style.css">
+  <link rel="icon" href="assets/favicon.png"><link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
   <div class="header">
-    <div class="logo">
-      <img src="assets/logo.png" alt="晴天支付" style="width: 36px; height: 36px; border-radius: 8px; object-fit: cover;">
-      <div class="logo-text"><h1>晴天支付</h1></div>
-    </div>
-    <div class="nav-links" id="navLinks">
-      <a href="index.html">首页</a>
-      <a href="docs.html" class="active">开发者文档</a>
-      <a href="merchant.html">商户中心</a>
-      <a href="support.html">帮助支持</a>
-    </div>
+    <div class="logo"><img src="assets/logo.png" alt="晴天支付"><div class="logo-text"><h1>晴天支付</h1></div></div>
+    <div class="nav-links" id="navLinks"><a href="index.html">首页</a><a href="docs.html" class="active">开发者文档</a><a href="merchant.html">商户中心</a><a href="support.html">帮助支持</a></div>
     <a href="login.html" class="btn-header">商户入驻</a>
     <div class="menu-toggle" onclick="document.getElementById('navLinks').classList.toggle('mobile-show')">☰</div>
   </div>
-  <main style="max-width: 900px; margin: 30px auto; padding: 0 20px;">
+  <main style="max-width: 900px; margin: 40px auto; padding: 0 24px;">
     <div class="card">
-      <h2 style="margin-bottom: 20px;">接口文档</h2>
-      <p style="color: #666;">内容正在整理中。目前支持 V1 接口（MD5 签名）。</p>
-      <pre style="background: #f4f4f4; padding: 15px; border-radius: 8px; margin-top: 20px; overflow-x: auto;">POST /api/v1/passport/auth/login</pre>
+      <h2 style="margin-bottom: 24px; font-size: 24px;">V1 支付接口文档</h2>
+      <p style="color: var(--text-muted); margin-bottom: 20px;">通过 HTTP POST 请求发起支付，采用标准 MD5 签名机制。</p>
+      
+      <h3 style="margin: 30px 0 16px; font-size: 18px;">发起支付</h3>
+      <p><strong>接口地址：</strong> <code>https://api.lynli.me/mapi.php</code></p>
+      <p style="margin-top: 12px;"><strong>请求参数：</strong></p>
+      <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; margin-top: 12px;">
+        <ul style="list-style: none; line-height: 2;">
+          <li><code>pid</code> - 商户ID (必填)</li>
+          <li><code>type</code> - 支付类型，固定为 <code>alipay</code> (必填)</li>
+          <li><code>out_trade_no</code> - 商户订单号 (必填)</li>
+          <li><code>money</code> - 金额 (必填)</li>
+          <li><code>sign</code> - MD5签名 (必填)</li>
+        </ul>
+      </div>
+
+      <h3 style="margin: 30px 0 16px; font-size: 18px;">MD5 签名规则</h3>
+      <pre>sign = md5(按参数名ASCII码从小到大排序后的 a=b&c=d 格式 + 商户密钥)</pre>
     </div>
   </main>
   <script src="assets/api.js"></script>

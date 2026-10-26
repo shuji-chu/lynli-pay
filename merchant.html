@@ -1,37 +1,25 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>商户中心 - 晴天支付</title>
-  <link rel="icon" href="assets/favicon.png">
-  <link rel="stylesheet" href="assets/style.css">
+  <link rel="icon" href="assets/favicon.png"><link rel="stylesheet" href="assets/style.css">
   <style>
-    .avatar-container { position: relative; cursor: pointer; display: inline-block; }
+    .avatar-container { position: relative; cursor: pointer; display: inline-block; margin-left: auto; }
     .avatar-img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid #eee; }
-    .avatar-default { width: 40px; height: 40px; border-radius: 50%; background: #eef3ff; display: flex; align-items: center; justify-content: center; color: #0a66ff; font-size: 20px; }
-    .avatar-uploading { opacity: 0.5; }
+    .avatar-default { width: 40px; height: 40px; border-radius: 50%; background: var(--primary-light); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 20px; }
   </style>
 </head>
 <body>
-  <div class="header">
-    <div class="logo">
-      <img src="assets/logo.png" alt="晴天支付" style="width: 36px; height: 36px; border-radius: 8px; object-fit: cover;">
-      <div class="logo-text"><h1>晴天支付</h1></div>
-    </div>
-    <div class="nav-links" id="navLinks">
-      <a href="index.html">首页</a>
-      <a href="docs.html">开发者文档</a>
-      <a href="merchant.html" class="active">商户中心</a>
-      <a href="support.html">帮助支持</a>
-    </div>
-    
-    <!-- 新增：全局头像展示与上传入口 -->
+  <div class="header" style="justify-content: space-between;">
+    <div class="logo"><img src="assets/logo.png" alt="晴天支付"><div class="logo-text"><h1>晴天支付</h1></div></div>
+    <div class="nav-links" id="navLinks" style="margin-left: 40px; margin-right: auto;"><a href="index.html">首页</a><a href="docs.html">开发者文档</a><a href="merchant.html" class="active">商户中心</a><a href="support.html">帮助支持</a></div>
     <div class="avatar-container" onclick="document.getElementById('avatarInput').click()">
       <img id="avatarImg" class="avatar-img" src="" style="display: none;">
       <div id="avatarDefault" class="avatar-default">👤</div>
       <input type="file" id="avatarInput" style="display: none;" accept="image/*" onchange="handleAvatarUpload(event)">
     </div>
+    <div class="menu-toggle" onclick="document.getElementById('navLinks').classList.toggle('mobile-show')">☰</div>
   </div>
 
   <div class="dashboard">
@@ -40,103 +28,61 @@
       <div class="menu-title">商户工作台</div>
       <div class="menu-item">用户中心</div>
       <div class="menu-item active">个人资料</div>
-      <div class="sub-menu">
-        <div class="active">API信息</div>
-        <div>修改资料</div>
-      </div>
       <div class="menu-title">交易与资金</div>
       <div class="menu-item">订单记录</div>
       <div class="menu-item">提现记录</div>
       <div class="menu-title">其他</div>
-      <div class="menu-item"><a href="docs.html">开发文档</a></div>
+      <div class="menu-item"><a href="docs.html" style="color:inherit;">开发文档</a></div>
       <div class="menu-item" onclick="logout()">退出登录</div>
     </div>
     <div class="main-content">
-      <div class="mobile-header">
-        <div class="menu-toggle" onclick="toggleMenu()">☰</div>
-        <h2 style="font-size: 18px; margin: 0;">个人资料</h2>
+      <div class="mobile-header"><div class="menu-toggle" onclick="toggleMenu()">☰</div><h2 style="font-size: 18px; margin: 0;">个人资料</h2></div>
+      <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 16px; margin-bottom: 24px;">
+        <div style="font-size: 20px; font-weight: 700;">API信息</div>
+        <div><a href="javascript:void(0)" onclick="logout()" style="color: var(--text-muted); font-size:14px;">退出登录</a></div>
       </div>
-      <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 20px;">
-        <div style="font-size: 16px; font-weight: bold;">个人资料</div>
-        <div><a href="javascript:void(0)" onclick="logout()" style="color: #888; font-size:14px;">退出登录</a></div>
-      </div>
-      <div style="font-size:16px; font-weight:bold; margin-bottom: 20px;">V1接口（MD5签名方式）</div>
-      <div class="form-group"><label>接口地址</label><input type="text" value="https://nzzf.org/" readonly></div>
-      <div class="form-group"><label>商户ID</label><input type="text" id="mch-id" value="加载中..." readonly></div>
-      <div class="form-group">
-        <label>商户MD5密钥</label>
-        <input type="text" id="mch-key" value="加载中..." readonly>
-        <div style="font-size:12px; color:#999; margin-top:6px;">密钥由服务器下发，如需重置请联系客服。</div>
-      </div>
-      <div style="margin-top: 30px;">
-        <a href="docs.html" class="btn-primary" style="text-decoration: none;">查看V1开发文档</a>
+      
+      <div class="card" style="margin-bottom: 24px;">
+        <div style="font-size:16px; font-weight:600; margin-bottom: 20px;">V1接口（MD5签名方式）</div>
+        <div class="form-group"><label>接口地址</label><input type="text" value="https://api.lynli.me/" readonly style="background:#f1f5f9;"></div>
+        <div class="form-group"><label>商户ID</label><input type="text" id="mch-id" value="5466" readonly style="background:#f1f5f9;"></div>
+        <div class="form-group">
+          <label>商户MD5密钥</label>
+          <input type="text" id="mch-key" value="d0498216697be28ddb79802a9f6b4bae25" readonly style="background:#f1f5f9;">
+        </div>
+        <div style="margin-top: 30px; display: flex; gap: 16px;">
+          <a href="docs.html" class="btn-outline" style="padding: 10px 20px; font-size: 14px;">查看文档</a>
+          <button class="btn-primary" onclick="testPay()" style="padding: 10px 20px; font-size: 14px;">发起测试支付 (0.01元)</button>
+        </div>
       </div>
     </div>
   </div>
   
   <script src="assets/api.js"></script>
   <script>
-    if (!getToken()) {
-      window.location.href = 'login.html';
-    }
-    
+    if (!getToken()) window.location.href = 'login.html';
     function toggleMenu() {
       document.getElementById('sidebar').classList.toggle('open');
       document.getElementById('overlay').classList.toggle('show');
     }
-
-    // 加载商户信息及头像
-    (async function loadMerchantInfo() {
+    async function testPay() {
       try {
-        const res = await apiFetch('/payplat/merchant/info', {});
-        const d = (res && res.data) || {};
-        document.getElementById('mch-id').value = d.mch_id || '未配置';
-        document.getElementById('mch-key').value = d.mch_key || '未配置';
-        
-        // 如果后端返回了头像URL
-        if (d.avatar_url) {
-            document.getElementById('avatarImg').src = d.avatar_url;
-            document.getElementById('avatarImg').style.display = 'block';
-            document.getElementById('avatarDefault').style.display = 'none';
-        }
-      } catch (e) {
-        document.getElementById('mch-id').value = '接口未就绪';
-        document.getElementById('mch-key').value = '接口未就绪';
-      }
-    })();
-
-    // 处理头像上传
+        toast('正在发起支付宝支付...');
+        const res = await apiFetch('/pay/create', { out_trade_no: 'ALI' + Date.now(), amount: 0.01 });
+        if (res.code === 200 && res.pay_url) { toast('跳转收银台...'); window.location.href = res.pay_url; } 
+        else { toast('发起失败: ' + (res.msg || res.message || '未知错误'), true); }
+      } catch (e) { toast(e.message, true); }
+    }
     async function handleAvatarUpload(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-      
-      // 前端限制：最大 2MB，只能是图片
-      if (file.size > 2 * 1024 * 1024) return toast('图片不能超过 2MB', true);
-      if (!file.type.startsWith('image/')) return toast('请选择图片文件', true);
-
-      // 1. 本地极速预览
+      const file = e.target.files[0]; if (!file) return;
       const reader = new FileReader();
       reader.onload = function(evt) {
         document.getElementById('avatarImg').src = evt.target.result;
         document.getElementById('avatarImg').style.display = 'block';
         document.getElementById('avatarDefault').style.display = 'none';
-        document.getElementById('avatarImg').classList.add('avatar-uploading');
       };
       reader.readAsDataURL(file);
-
-      // 2. 上传到后端
-      try {
-        toast('正在上传...');
-        // 调用 api.js 里的 uploadAvatar
-        const res = await uploadAvatar(file);
-        toast('头像更新成功');
-        document.getElementById('avatarImg').classList.remove('avatar-uploading');
-      } catch (err) {
-        toast('上传失败: ' + err.message, true);
-        // 如果失败，重新加载原来的头像（此处略，刷新页面即可恢复）
-      }
-      // 清空 input 允许重复上传同一张图
-      e.target.value = '';
+      try { await uploadAvatar(file); toast('头像更新成功'); } catch (err) { toast('上传失败: ' + err.message, true); }
     }
   </script>
 </body>
