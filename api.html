@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>API 信息 - 晴天支付</title>
+  <link rel="icon" href="assets/favicon.png">
+  <link rel="stylesheet" href="assets/console.css">
+  <style>
+    .page-head h1 { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
+    .page-head p { color: var(--text-muted); font-size: 14px; margin-bottom: 20px; }
+    .secret-val.blur { filter: blur(5px); user-select: none; }
+    .tip-box { background: #eff6ff; border-radius: 12px; padding: 14px 16px; font-size: 13px; color: #1e40af; line-height: 1.7; margin-bottom: 16px; }
+    .tip-box a { color: var(--primary); font-weight: 600; }
+  </style>
+</head>
+<body>
+
+  <aside class="lyn-sidebar">
+    <div class="lyn-side-head">
+      <img src="assets/logo.png" alt="晴天支付">
+      <div><h2>晴天支付</h2><p>商户服务平台</p></div>
+    </div>
+    <div class="lyn-side-body">
+      <div class="lyn-group">商户工作台</div>
+      <a href="merchant.html" class="lyn-item"><span class="lyn-ic lyn-ic-blue"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg></span>数据看板</a>
+      <a href="javascript:void(0)" class="lyn-item" onclick="lynTestPay()"><span class="lyn-ic lyn-ic-amber"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 2L4 14h6l-1 8 9-12h-6z"/></svg></span>发起测试支付</a>
+      <a href="api.html" class="lyn-item active"><span class="lyn-ic lyn-ic-blue"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m3-2a5 5 0 01-7.5 4.3L8 16v3H5v-3H2v-3h3l4.7-4.5A5 5 0 1120 7z"/></svg></span>API 信息</a>
+      <div class="lyn-group">交易与资金</div>
+      <a href="orders.html" class="lyn-item"><span class="lyn-ic lyn-ic-purple"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg></span>交易流水</a>
+      <a href="withdraw.html" class="lyn-item"><span class="lyn-ic lyn-ic-green"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg></span>提现申请</a>
+      <div class="lyn-group">其他</div>
+      <a href="index.html" class="lyn-item"><span class="lyn-ic lyn-ic-orange"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 11l9-8 9 8M5 10v10h14V10"/></svg></span>返回首页</a>
+      <a href="docs.html" class="lyn-item"><span class="lyn-ic lyn-ic-orange"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4h13l3 3v13H4zM8 9h8M8 13h8M8 17h5"/></svg></span>开发文档</a>
+    </div>
+    <div class="lyn-side-foot" id="lynSideFoot"><span>未登录</span></div>
+  </aside>
+
+  <div class="mobile-topbar">
+    <div class="left">
+      <button class="menu-btn" onclick="lynDrawerOpen()" aria-label="打开菜单">☰</button>
+      <span>API 信息</span>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn-mini" onclick="lynTestPay()">测试支付</button>
+      <button class="btn-exit" onclick="logout()">退出</button>
+    </div>
+  </div>
+
+  <div class="lyn-mask" id="lynMask" onclick="lynDrawerClose()"></div>
+
+  <div class="lyn-drawer" id="lynDrawer">
+    <div class="lyn-drawer-head">
+      <div class="lyn-drawer-logo-area">
+        <img src="assets/logo.png" alt="晴天支付">
+        <div class="lyn-drawer-title"><h2>晴天支付</h2><p>商户服务平台</p></div>
+      </div>
+      <button class="lyn-drawer-x" onclick="lynDrawerClose()" aria-label="关闭">✕</button>
+    </div>
+    <div class="lyn-drawer-body">
+      <div class="lyn-group">商户工作台</div>
+      <a href="merchant.html" class="lyn-item"><span class="lyn-ic lyn-ic-blue"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg></span>数据看板</a>
+      <a href="javascript:void(0)" class="lyn-item" onclick="lynTestPay()"><span class="lyn-ic lyn-ic-amber"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 2L4 14h6l-1 8 9-12h-6z"/></svg></span>发起测试支付</a>
+      <a href="api.html" class="lyn-item active"><span class="lyn-ic lyn-ic-blue"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m3-2a5 5 0 01-7.5 4.3L8 16v3H5v-3H2v-3h3l4.7-4.5A5 5 0 1120 7z"/></svg></span>API 信息</a>
+      <div class="lyn-group">交易与资金</div>
+      <a href="orders.html" class="lyn-item"><span class="lyn-ic lyn-ic-purple"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg></span>交易流水</a>
+      <a href="withdraw.html" class="lyn-item"><span class="lyn-ic lyn-ic-green"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg></span>提现申请</a>
+      <div class="lyn-group">其他</div>
+      <a href="index.html" class="lyn-item"><span class="lyn-ic lyn-ic-orange"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 11l9-8 9 8M5 10v10h14V10"/></svg></span>返回首页</a>
+      <a href="docs.html" class="lyn-item"><span class="lyn-ic lyn-ic-orange"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4h13l3 3v13H4zM8 9h8M8 13h8M8 17h5"/></svg></span>开发文档</a>
+    </div>
+    <div class="lyn-drawer-foot" id="lynFoot"><span>未登录</span></div>
+  </div>
+
+  <div class="console-main">
+    <div class="page-head">
+      <h1>API 信息</h1>
+      <p>接入所需的商户凭证，请妥善保管，切勿泄露给他人</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">商户凭证</div>
+      <div class="key-row">
+        <div style="flex:1">
+          <div class="k-label">商户 ID (app_id)</div>
+          <div class="k-val" id="k-appid">--</div>
+        </div>
+        <button class="copy-btn" onclick="copyField('k-appid')">复制</button>
+      </div>
+      <div class="key-row">
+        <div style="flex:1">
+          <div class="k-label">MD5 密钥 (app_secret)</div>
+          <div class="k-val secret-val" id="k-secret">--</div>
+        </div>
+        <button class="copy-btn" onclick="toggleSecret()" id="btn-eye">显示</button>
+        <button class="copy-btn" onclick="copyField('k-secret')">复制</button>
+      </div>
+      <div class="key-row">
+        <div style="flex:1">
+          <div class="k-label">网关地址</div>
+          <div class="k-val">https://api.lynli.me/api/v1/payplat/gateway/submit</div>
+        </div>
+        <button class="copy-btn" onclick="copyText('https://api.lynli.me/api/v1/payplat/gateway/submit')">复制</button>
+      </div>
+      <div class="key-row">
+        <div style="flex:1">
+          <div class="k-label">查询地址</div>
+          <div class="k-val">https://api.lynli.me/api/v1/payplat/gateway/query</div>
+        </div>
+        <button class="copy-btn" onclick="copyText('https://api.lynli.me/api/v1/payplat/gateway/query')">复制</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">站点与回调</div>
+      <div id="site-rows"><div class="empty-tip">加载中…</div></div>
+    </div>
+
+    <div class="tip-box">
+      当前平台使用 <b>MD5 签名</b>：将请求参数按 ASCII 升序拼接为 <b>k=v&amp;</b> 形式（剔除空值与 sign），末尾拼接 app_secret 后取 MD5 即为 sign。完整规则与示例见 <a href="docs.html">开发文档</a>。RSA 公私钥签名通道即将上线，上线后可在本页查看密钥对。
+    </div>
+  </div>
+
+  <div id="toast"></div>
+  <script src="assets/api.js"></script>
+  <script>
+    if (!requireLogin()) throw new Error("need login");
+
+    function lynDrawerOpen() {
+      document.getElementById('lynDrawer').classList.add('open');
+      document.getElementById('lynMask').classList.add('show');
+      document.body.classList.add('lyn-locked');
+    }
+    function lynDrawerClose() {
+      document.getElementById('lynDrawer').classList.remove('open');
+      document.getElementById('lynMask').classList.remove('show');
+      document.body.classList.remove('lyn-locked');
+    }
+
+    function copyField(id) {
+      const v = document.getElementById(id).textContent;
+      if (!v || v === "--") return toast("内容尚未加载", true);
+      copyText(v);
+    }
+    let secretShown = false;
+    function toggleSecret() {
+      secretShown = !secretShown;
+      document.getElementById('k-secret').classList.toggle("blur", !secretShown);
+      document.getElementById('btn-eye').textContent = secretShown ? "隐藏" : "显示";
+    }
+
+    (async function load() {
+      try {
+        const info = await apiGet("/payplat/merchant/info");
+        const m = info && info.data;
+        if (!m) { location.href = "login.html"; return; }
+        document.getElementById('k-appid').textContent = m.app_id || "--";
+        const sec = document.getElementById('k-secret');
+        sec.textContent = m.app_secret || "--";
+        sec.classList.add("blur");
+        const rows = [
+          ["站点名称", m.site_name || "-"],
+          ["站点地址", m.site_url || "-"],
+          ["异步通知地址 (notify_url)", m.notify_url || "-"],
+          ["结算费率", "10%"],
+          ["入驻状态", m.status_text || "-"]
+        ];
+        document.getElementById('site-rows').innerHTML = rows.map(function(r) {
+          return "<div class='key-row'><div style='flex:1'><div class='k-label'>" + esc(r[0]) +
+            "</div><div class='k-val'>" + esc(r[1]) + "</div></div></div>";
+        }).join("");
+        const footHtml = "<span>" + esc(m.site_name || ("商户 " + m.id)) + "</span><a href='javascript:void(0)' onclick='logout()'>退出登录</a>";
+        document.getElementById('lynFoot').innerHTML = footHtml;
+        document.getElementById('lynSideFoot').innerHTML = footHtml;
+      } catch (e) { toast(e.message || e, true); }
+    })();
+  </script>
+</body>
+</html>

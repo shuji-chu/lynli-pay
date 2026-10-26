@@ -32,6 +32,8 @@
     .err-ic { background: linear-gradient(135deg, #dc2626, #f87171); }
     .empty-tip { color: var(--text-muted); font-size: 14px; padding: 30px 0; }
     .sub-h { font-size: 16px; font-weight: 700; margin-bottom: 12px; }
+    .cd-box { margin-top: 18px; display: inline-flex; align-items: center; gap: 6px; background: #fffbeb; color: #b45309; border: 1px solid #fde68a; border-radius: 999px; padding: 8px 16px; font-size: 13px; }
+    .cd-box b { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 15px; letter-spacing: 1px; }
   </style>
 </head>
 <body>
@@ -44,6 +46,27 @@
     const no = q.get("trade_no") || "";
 
     function esc2(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+
+    let cdTimer = null;
+    function startCountdown(createdAt, ttl) {
+      if (cdTimer) clearInterval(cdTimer);
+      const deadline = (createdAt ? createdAt : Math.floor(Date.now() / 1000)) + ttl;
+      const el = () => document.getElementById("cd");
+      const tick = () => {
+        const n = el(); if (!n) { clearInterval(cdTimer); return; }
+        const left = Math.max(0, deadline - Math.floor(Date.now() / 1000));
+        n.textContent = String(Math.floor(left / 60)).padStart(2, "0") + ":" + String(left % 60).padStart(2, "0");
+        if (left <= 0) {
+          clearInterval(cdTimer);
+          document.getElementById("box").innerHTML =
+            '<div class="success-ic err-ic">✕</div><div class="sub-h">订单已超时</div>' +
+            '<p class="pay-state">请返回商户站重新发起支付</p>' +
+            '<button class="btn btn-primary" style="margin-top:20px;width:100%" onclick="location.href=\'index.html\'">返回首页</button>';
+        }
+      };
+      tick();
+      cdTimer = setInterval(tick, 1000);
+    }
 
     async function render(state) {
       const box = document.getElementById("box");
@@ -79,10 +102,12 @@
         box.innerHTML = '<div class="brand"><img src="assets/logo.png" alt=""><span>晴天收银台</span></div>' +
           '<div class="amt">¥' + money(d.amount) + '</div>' +
           '<p class="name">' + esc2(d.name || "") + ' · 单号 ' + esc2(d.trade_no) + '</p>' + payPart +
+          '<div class="cd-box">订单有效期剩余 <b id="cd">--:--</b></div>' +
           '<p class="pay-state"><span class="dot"></span>等待支付确认，每 3 秒自动刷新</p>';
         if (d.method !== "usdt" && d.payurl) {
           document.getElementById("alipay-qr").src = "https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=" + encodeURIComponent(d.payurl);
         }
+        startCountdown(Number(d.created_at) || 0, 15 * 60);
       } catch (e) {
         box.innerHTML = '<div class="success-ic err-ic">✕</div><div class="sub-h">加载失败</div><p class="pay-state">' + esc2(String(e.message || e).slice(0, 100)) + '</p>';
       }

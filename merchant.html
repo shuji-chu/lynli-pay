@@ -5,125 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>商户控制台 - 晴天支付</title>
   <link rel="icon" href="assets/favicon.png">
-  <style>
-    /* ================= 基础色彩系统 ================= */
-    :root {
-      --primary: #2563eb; --primary-light: #eff6ff;
-      --bg: #f8fafc; --surface: #ffffff;
-      --text-main: #0f172a; --text-muted: #64748b; --border: #e2e8f0;
-      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-      --shadow-drawer: 10px 0 30px -5px rgba(0, 0, 0, 0.1), 4px 0 10px -4px rgba(0, 0, 0, 0.05);
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-    body { font-family: -apple-system, BlinkMacSystemFont, "Inter", "PingFang SC", sans-serif; background: var(--bg); color: var(--text-main); }
-    a { text-decoration: none; color: inherit; }
-
-    /* ================= 移动端顶栏 ================= */
-    .mobile-topbar {
-      display: none; align-items: center; justify-content: space-between;
-      height: 64px; background: var(--surface); padding: 0 16px;
-      border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 90;
-    }
-    .mobile-topbar .left { display: flex; align-items: center; gap: 12px; font-weight: 600; font-size: 17px; }
-    .menu-btn { font-size: 24px; cursor: pointer; padding: 8px; border-radius: 8px; transition: background 0.2s; background: none; border: none; color: var(--text-main); font-family: inherit; }
-    .menu-btn:active { background: var(--bg); }
-    .topbar-actions { display: flex; gap: 8px; align-items: center; }
-    .btn-mini { background: var(--primary); color: #fff; border: none; border-radius: 8px; padding: 8px 14px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; }
-    .btn-exit { background: var(--bg); color: var(--text-muted); border: none; border-radius: 8px; padding: 8px 12px; font-size: 13px; cursor: pointer; font-family: inherit; }
-
-    /* ================= 核心毛玻璃遮罩（lyn- 命名空间） ================= */
-    .lyn-mask {
-      position: fixed; inset: 0;
-      background: rgba(15, 23, 42, 0.4);
-      -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
-      z-index: 9998; opacity: 0; pointer-events: none;
-      transition: opacity 0.4s cubic-bezier(0.32, 0.72, 0, 1);
-    }
-    .lyn-mask.show { opacity: 1; pointer-events: auto; }
-
-    /* ================= 物理丝滑抽屉（仅 transform） ================= */
-    .lyn-drawer {
-      position: fixed; top: 0; bottom: 0; left: 0;
-      width: 85%; max-width: 320px; background: var(--surface); z-index: 9999;
-      display: flex; flex-direction: column; border-radius: 0 24px 24px 0;
-      box-shadow: var(--shadow-drawer);
-      transform: translateX(-100%); will-change: transform;
-      transition: transform 0.45s cubic-bezier(0.32, 0.72, 0, 1);
-    }
-    .lyn-drawer.open { transform: translateX(0); }
-    .lyn-drawer-head { display: flex; align-items: center; justify-content: space-between; padding: 24px 20px 20px; }
-    .lyn-drawer-logo-area { display: flex; align-items: center; gap: 14px; }
-    .lyn-drawer-logo-area img { width: 48px; height: 48px; border-radius: 14px; box-shadow: 0 4px 12px rgba(37,99,235,0.2); }
-    .lyn-drawer-title h2 { margin: 0; font-size: 19px; font-weight: 700; letter-spacing: -0.5px; }
-    .lyn-drawer-title p { margin: 4px 0 0; font-size: 13px; color: var(--text-muted); }
-    .lyn-drawer-x {
-      width: 36px; height: 36px; border-radius: 50%; background: var(--bg); border: none;
-      display: flex; align-items: center; justify-content: center; font-size: 18px;
-      color: var(--text-muted); cursor: pointer; transition: transform 0.2s; font-family: inherit;
-    }
-    .lyn-drawer-x:active { transform: scale(0.9); }
-    .lyn-drawer-body { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 8px 16px 24px; scrollbar-width: none; }
-    .lyn-drawer-body::-webkit-scrollbar { display: none; }
-    .lyn-group { font-size: 12px; color: #94a3b8; margin: 24px 12px 8px; font-weight: 600; letter-spacing: 1px; }
-    .lyn-item {
-      display: flex; align-items: center; gap: 8px;
-      padding: 8px; margin-bottom: 8px; border-radius: 14px;
-      font-size: 15px; color: #334155; font-weight: 500; transition: all 0.2s ease;
-    }
-    .lyn-item:active { background: var(--bg); transform: scale(0.98); }
-    .lyn-item.active { background: var(--primary-light); color: var(--primary); font-weight: 600; }
-    .lyn-ic { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-    .lyn-ic svg { width: 20px; height: 20px; }
-    .lyn-ic-blue { background: #eff6ff; color: #2563eb; }
-    .lyn-ic-green { background: #ecfdf5; color: #059669; }
-    .lyn-ic-purple { background: #f5f3ff; color: #7c3aed; }
-    .lyn-ic-amber { background: #fffbeb; color: #d97706; }
-    .lyn-ic-orange { background: #fff7ed; color: #ea580c; }
-    .lyn-drawer-foot {
-      padding: 16px 20px; border-top: 1px solid var(--border);
-      display: flex; align-items: center; justify-content: space-between; font-size: 13px; color: var(--text-muted);
-    }
-    .lyn-drawer-foot a { color: var(--primary); font-weight: 600; }
-    body.lyn-locked { overflow: hidden; }
-
-    /* ================= 看板 ================= */
-    .main-dashboard { padding: 24px 20px; max-width: 800px; margin: 0 auto; }
-    .dashboard-header { margin-bottom: 24px; }
-    .dashboard-header h1 { font-size: 24px; margin-bottom: 4px; font-weight: 700; }
-    .dashboard-header p { color: var(--text-muted); font-size: 14px; }
-    .metrics-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 24px; }
-    .metric-card { background: var(--surface); border-radius: 16px; padding: 20px; box-shadow: var(--shadow-sm); border: 1px solid var(--border); }
-    .metric-title { font-size: 13px; color: var(--text-muted); margin-bottom: 8px; font-weight: 500; }
-    .metric-value { font-size: 26px; font-weight: 700; display: flex; align-items: baseline; gap: 4px; letter-spacing: -1px; }
-    .metric-value span { font-size: 14px; font-weight: 500; color: var(--text-muted); }
-    .green { color: #059669; }
-    .chart-card { background: var(--surface); border-radius: 16px; padding: 20px; box-shadow: var(--shadow-sm); border: 1px solid var(--border); margin-bottom: 24px; }
-    .chart-title { font-size: 15px; font-weight: 600; margin-bottom: 20px; }
-    .chart-bars { display: flex; align-items: flex-end; height: 100px; gap: 8px; }
-    .bar-col { flex: 1; background: var(--primary-light); border-radius: 4px 4px 0 0; min-height: 4px; position: relative; transition: height 1s cubic-bezier(0.32, 0.72, 0, 1); }
-    .bar-col.active { background: var(--primary); }
-    .bar-col em { position: absolute; bottom: -20px; left: 0; right: 0; text-align: center; font-style: normal; font-size: 10px; color: var(--text-muted); }
-    .chart-x { display: flex; gap: 8px; margin-top: 24px; }
-    .chart-x span { flex: 1; text-align: center; font-size: 10px; color: var(--text-muted); }
-    .tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
-    .tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
-    .tbl th, .tbl td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; }
-    .tbl th { background: var(--bg); color: var(--text-muted); font-weight: 600; }
-    .badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; }
-    .badge.ok { background: #ecfdf5; color: #059669; }
-    .badge.warn { background: #fffbeb; color: #d97706; }
-    .badge.flat { background: #f1f5f9; color: #64748b; }
-    .empty-tip { text-align: center; color: var(--text-muted); font-size: 13px; padding: 32px 0; }
-
-    @media (min-width: 769px) {
-      .mobile-topbar { display: none !important; }
-      .lyn-drawer, .lyn-mask { display: none !important; }
-      .main-dashboard { padding: 40px; }
-      .metrics-grid { grid-template-columns: repeat(4, 1fr); }
-    }
-    @media (max-width: 768px) { .mobile-topbar { display: flex; } }
-    @media (prefers-reduced-motion: reduce) { .lyn-drawer, .lyn-mask { transition: none; } }
-  </style>
+  <link rel="stylesheet" href="assets/console.css">
 </head>
 <body>
 
@@ -137,6 +19,26 @@
       <button class="btn-exit" onclick="logout()">退出</button>
     </div>
   </div>
+
+  <aside class="lyn-sidebar">
+    <div class="lyn-side-head">
+      <img src="assets/logo.png" alt="晴天支付">
+      <div><h2>晴天支付</h2><p>商户服务平台</p></div>
+    </div>
+    <div class="lyn-side-body">
+      <div class="lyn-group">商户工作台</div>
+      <a href="merchant.html" class="lyn-item active"><span class="lyn-ic lyn-ic-blue"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg></span>数据看板</a>
+      <a href="javascript:void(0)" class="lyn-item" onclick="lynTestPay()"><span class="lyn-ic lyn-ic-amber"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 2L4 14h6l-1 8 9-12h-6z"/></svg></span>发起测试支付</a>
+      <a href="api.html" class="lyn-item"><span class="lyn-ic lyn-ic-blue"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m3-2a5 5 0 01-7.5 4.3L8 16v3H5v-3H2v-3h3l4.7-4.5A5 5 0 1120 7z"/></svg></span>API 信息</a>
+      <div class="lyn-group">交易与资金</div>
+      <a href="orders.html" class="lyn-item"><span class="lyn-ic lyn-ic-purple"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg></span>交易流水</a>
+      <a href="withdraw.html" class="lyn-item"><span class="lyn-ic lyn-ic-green"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg></span>提现申请</a>
+      <div class="lyn-group">其他</div>
+      <a href="index.html" class="lyn-item"><span class="lyn-ic lyn-ic-orange"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 11l9-8 9 8M5 10v10h14V10"/></svg></span>返回首页</a>
+      <a href="docs.html" class="lyn-item"><span class="lyn-ic lyn-ic-orange"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4h13l3 3v13H4zM8 9h8M8 13h8M8 17h5"/></svg></span>开发文档</a>
+    </div>
+    <div class="lyn-side-foot" id="lynSideFoot"><span>未登录</span></div>
+  </aside>
 
   <div class="lyn-mask" id="lynMask" onclick="lynDrawerClose()"></div>
 
@@ -156,9 +58,9 @@
       <a href="javascript:void(0)" class="lyn-item" onclick="lynTestPay()">
         <span class="lyn-ic lyn-ic-amber"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 2L4 14h6l-1 8 9-12h-6z"/></svg></span>
         发起测试支付</a>
-      <a href="javascript:void(0)" class="lyn-item" onclick="copyKeys()">
+      <a href="api.html" class="lyn-item">
         <span class="lyn-ic lyn-ic-blue"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m3-2a5 5 0 01-7.5 4.3L8 16v3H5v-3H2v-3h3l4.7-4.5A5 5 0 1120 7z"/></svg></span>
-        API 密钥</a>
+        API 信息</a>
       <div class="lyn-group">交易与资金</div>
       <a href="orders.html" class="lyn-item">
         <span class="lyn-ic lyn-ic-purple"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg></span>
@@ -177,10 +79,10 @@
     <div class="lyn-drawer-foot" id="lynFoot"><span>未登录</span></div>
   </div>
 
-  <div class="main-dashboard">
-    <div class="dashboard-header">
-      <h1>数据看板</h1>
-      <p id="dash-welcome">加载中…</p>
+  <div class="console-main">
+    <div style="margin-bottom:24px">
+      <h1 class="page-h1">数据看板</h1>
+      <p class="page-sub" id="dash-welcome">加载中…</p>
     </div>
     <div class="metrics-grid">
       <div class="metric-card"><div class="metric-title">可提现余额 (CNY)</div><div class="metric-value" id="kpi-balance">-- <span>元</span></div></div>
@@ -236,8 +138,9 @@
         }
         document.getElementById('kpi-balance').innerHTML = money(m.balance) + " <span>元</span>";
         document.getElementById('kpi-total').innerHTML = money(m.total_amount) + " <span>元</span>";
-        document.getElementById('lynFoot').innerHTML =
-          "<span>" + esc(m.site_name || ("商户 " + m.id)) + "</span><a href='javascript:void(0)' onclick='logout()'>退出登录</a>";
+        const footHtml = "<span>" + esc(m.site_name || ("商户 " + m.id)) + "</span><a href='javascript:void(0)' onclick='logout()'>退出登录</a>";
+        document.getElementById('lynFoot').innerHTML = footHtml;
+        const sf = document.getElementById('lynSideFoot'); if (sf) sf.innerHTML = footHtml;
 
         const jo = await apiGet("/payplat/merchant/orders");
         const list = (jo && jo.data) || [];

@@ -1,90 +1,305 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>商户登录 - 晴天支付</title>
-  <link rel="icon" href="assets/favicon.png"><link rel="stylesheet" href="assets/style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>商户入口 - 晴天支付平台</title>
+  <link rel="icon" href="assets/favicon.png">
   <style>
-    body { background: #f0f4f8; display: flex; flex-direction: column; min-height: 100vh; }
-    .login-wrap { flex: 1; display: flex; align-items: center; justify-content: center; padding: 20px; }
-    .login-card { width: 100%; max-width: 440px; background: #fff; border-radius: 16px; padding: 40px; box-shadow: 0 20px 40px -10px rgba(0,0,0,0.08); }
-    .tabs { display: flex; border-bottom: 1px solid var(--border-color); margin-bottom: 32px; }
-    .tab { flex: 1; text-align: center; padding: 16px; cursor: pointer; font-size: 16px; color: var(--text-muted); transition: all 0.2s; }
-    .tab.active { color: var(--primary); font-weight: 600; border-bottom: 2px solid var(--primary); }
+    :root {
+      --primary: #1a7af0; --primary-deep: #1266d2;
+      --text-main: #0f172a; --text-muted: #64748b; --border: #e2e8f0;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Inter", "PingFang SC", sans-serif;
+      background: #f1f4f9; color: var(--text-main);
+      min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px;
+    }
+    a { text-decoration: none; color: inherit; }
+
+    .shell {
+      width: 100%; max-width: 880px; background: #fff; border-radius: 20px; overflow: hidden;
+      box-shadow: 0 20px 60px -15px rgba(15, 23, 42, 0.12);
+      display: grid; grid-template-columns: 1fr 1fr;
+    }
+
+    /* ---------- 左栏品牌区（浅蓝渐变） ---------- */
+    .brand {
+      background: linear-gradient(160deg, #d9ecfc 0%, #e8f3fd 60%, #f2f8fe 100%);
+      padding: 40px 36px; display: flex; flex-direction: column;
+    }
+    .brand-logo { display: flex; align-items: center; gap: 12px; margin-bottom: 44px; }
+    .brand-logo .lg {
+      width: 46px; height: 46px; border-radius: 13px; background: var(--primary);
+      display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 16px rgba(26,122,240,0.35);
+    }
+    .brand-logo .lg svg { width: 24px; height: 24px; color: #fff; }
+    .brand-logo h1 { font-size: 19px; font-weight: 700; letter-spacing: -0.3px; }
+    .brand-logo p { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+    .brand-eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 3px; color: var(--primary); margin-bottom: 12px; }
+    .brand-title { font-size: 30px; font-weight: 800; line-height: 1.35; letter-spacing: -1px; margin-bottom: 14px; }
+    .brand-sub { font-size: 14px; color: var(--text-muted); line-height: 1.8; margin-bottom: 34px; }
+
+    /* CSS 图表插画（钱包卡片插画） */
+    .illus { position: relative; margin: 0 auto 34px; width: 230px; }
+    .illus-card {
+      background: #fff; border-radius: 16px; padding: 18px 18px 14px;
+      box-shadow: 0 18px 40px -12px rgba(26,122,240,0.25); transform: rotate(-4deg);
+    }
+    .illus-card .ic-head { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; color: #334155; margin-bottom: 12px; }
+    .illus-card .ic-head i { width: 22px; height: 22px; border-radius: 7px; background: #eff6ff; color: var(--primary); display: flex; align-items: center; justify-content: center; font-style: normal; }
+    .illus-card .ic-head i svg { width: 14px; height: 14px; }
+    .illus-bars { display: flex; align-items: flex-end; gap: 9px; height: 76px; }
+    .illus-bars i { flex: 1; border-radius: 5px 5px 0 0; background: #cfe3fb; }
+    .illus-bars i.hot { background: var(--primary); }
+    .illus-badge {
+      position: absolute; top: -14px; right: -18px; width: 52px; height: 52px; border-radius: 16px;
+      background: #fff; box-shadow: 0 12px 28px -8px rgba(15,23,42,0.18);
+      display: flex; align-items: center; justify-content: center; transform: rotate(8deg);
+    }
+    .illus-badge svg { width: 26px; height: 26px; color: #059669; }
+    .illus-check {
+      position: absolute; bottom: -12px; left: -20px; width: 40px; height: 40px; border-radius: 50%;
+      background: #fff; box-shadow: 0 10px 24px -8px rgba(15,23,42,0.18);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .illus-check svg { width: 20px; height: 20px; color: var(--primary); }
+
+    .brand-feats { display: flex; gap: 18px; font-size: 12.5px; color: #475569; font-weight: 500; }
+    .brand-feats span { display: flex; align-items: center; gap: 5px; }
+    .brand-feats svg { width: 15px; height: 15px; color: var(--primary); }
+    .brand-foot { margin-top: auto; padding-top: 28px; font-size: 12px; color: #94a3b8; }
+
+    /* ---------- 右栏入口区 ---------- */
+    .entry { padding: 48px 44px; display: flex; flex-direction: column; justify-content: center; }
+    .entry-eyebrow { font-size: 13px; font-weight: 700; color: var(--primary); margin-bottom: 10px; }
+    .entry h2 { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 6px; }
+    .entry .welcome { font-size: 14px; color: var(--text-muted); margin-bottom: 22px; }
+
+    .tabs { display: flex; background: #f1f5f9; border-radius: 12px; padding: 4px; margin-bottom: 20px; }
+    .tabs button {
+      flex: 1; height: 38px; border: none; border-radius: 9px; background: transparent;
+      font-size: 14px; font-weight: 600; color: var(--text-muted); cursor: pointer; font-family: inherit;
+      transition: all 0.25s cubic-bezier(0.32, 0.72, 0, 1);
+    }
+    .tabs button.on { background: #fff; color: var(--text-main); box-shadow: 0 2px 8px rgba(15,23,42,0.08); }
+
+    .pane { display: none; }
+    .pane.on { display: block; }
+    .fld { margin-bottom: 14px; }
+    .fld label { display: block; font-size: 13px; color: var(--text-muted); font-weight: 600; margin-bottom: 6px; }
+    .fld input {
+      width: 100%; height: 46px; border: 1px solid var(--border); border-radius: 12px;
+      padding: 0 14px; font-size: 15px; font-family: inherit; outline: none; background: #fff; color: var(--text-main);
+      transition: border 0.2s, box-shadow 0.2s;
+    }
+    .fld input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(26,122,240,0.12); }
+    .code-row { display: flex; gap: 10px; }
+    .code-row input { flex: 1; }
+    .code-btn {
+      flex-shrink: 0; border: 1px solid var(--primary); background: #eff6ff; color: var(--primary);
+      border-radius: 12px; padding: 0 16px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit;
+    }
+    .code-btn[disabled] { opacity: 0.55; pointer-events: none; }
+    .btn-pri {
+      width: 100%; height: 48px; border: none; border-radius: 12px; background: var(--primary);
+      color: #fff; font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit;
+      transition: transform 0.15s, background 0.2s; box-shadow: 0 6px 18px rgba(26,122,240,0.3); margin-top: 4px;
+    }
+    .btn-pri:hover { background: var(--primary-deep); }
+    .btn-pri:active { transform: scale(0.98); }
+    .btn-pri[disabled] { opacity: 0.55; pointer-events: none; }
+
+    .tg-box {
+      margin-top: 22px; background: #f8fafc; border: 1px solid var(--border); border-radius: 14px; padding: 16px;
+      font-size: 13px; color: var(--text-muted); line-height: 1.8;
+    }
+    .btn-tg {
+      margin-top: 12px; width: 100%; height: 50px; border: none; border-radius: 12px;
+      background: var(--primary); color: #fff; font-size: 15px; font-weight: 700; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 12px; font-family: inherit;
+      box-shadow: 0 6px 18px rgba(26,122,240,0.3);
+    }
+    .btn-tg .tg-ic { width: 34px; height: 34px; border-radius: 10px; background: rgba(255,255,255,0.18); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .btn-tg .tg-ic svg { width: 18px; height: 18px; }
+    .btn-tg .txt { text-align: left; line-height: 1.3; }
+    .btn-tg .txt small { display: block; font-size: 12px; font-weight: 500; opacity: 0.85; }
+    .safe-tip { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 18px; font-size: 12.5px; color: #94a3b8; }
+    .safe-tip svg { width: 14px; height: 14px; }
+
+    #toast {
+      position: fixed; left: 50%; bottom: 40px; transform: translateX(-50%) translateY(20px);
+      background: #0f172a; color: #fff; padding: 12px 20px; border-radius: 12px;
+      font-size: 14px; opacity: 0; pointer-events: none; transition: all 0.3s cubic-bezier(0.32, 0.72, 0, 1); z-index: 100;
+    }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    #toast.err { background: #dc2626; }
+
+    /* ---------- 移动端：单栏卡片 ---------- */
+    @media (max-width: 767px) {
+      body { padding: 0; align-items: stretch; background: linear-gradient(165deg, #d9ecfc 0%, #eaf4fd 34%, #f1f4f9 34.2%); }
+      .shell { grid-template-columns: 1fr; max-width: 420px; border-radius: 20px; margin: 24px 0; }
+      .brand { padding: 28px 24px 24px; }
+      .brand-logo { margin-bottom: 24px; }
+      .brand-eyebrow, .illus, .brand-foot { display: none; }
+      .brand-title { font-size: 24px; margin-bottom: 8px; }
+      .brand-sub { margin-bottom: 0; }
+      .entry { padding: 28px 24px 32px; }
+    }
+    @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
   </style>
 </head>
 <body>
-  <div class="header">
-    <div class="logo"><img src="assets/logo.png" alt="晴天支付"><div class="logo-text"><h1>晴天支付</h1></div></div>
-    <div class="nav-links" id="navLinks"><a href="index.html">首页</a><a href="docs.html">开发者文档</a><a href="merchant.html">商户中心</a><a href="support.html">帮助支持</a></div>
-    <a href="login.html" class="btn-header" style="display:none;">商户入驻</a>
-    <div class="menu-toggle" onclick="document.getElementById('navLinks').classList.toggle('mobile-show')">☰</div>
-  </div>
-  <div class="login-wrap">
-    <div class="login-card">
-      <div class="tabs">
-        <div id="tab-login" class="tab active" onclick="switchTab('login')">账号登录</div>
-        <div id="tab-reg" class="tab" onclick="switchTab('reg')">商户入驻</div>
+  <div class="shell">
+
+    <!-- 左栏品牌区 -->
+    <div class="brand">
+      <div class="brand-logo">
+        <span class="lg"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg></span>
+        <div><h1>晴天支付</h1><p>商户服务平台</p></div>
       </div>
-      <div class="form-group"><label>邮箱地址</label><input type="email" id="email" placeholder="you@example.com"></div>
-      <div class="form-group"><label>登录密码</label><input type="password" id="password" placeholder="至少 6 位密码"></div>
-      <div id="code-group" class="form-group" style="display: none;">
-        <label>邮箱验证码</label>
-        <div style="display: flex; gap: 12px;">
-          <input type="text" id="code" placeholder="6位验证码" style="flex:1;">
-          <button id="btn-send" onclick="sendCode()" class="btn-outline" style="padding: 0 20px; white-space: nowrap;">获取验证码</button>
+      <div class="brand-eyebrow">MERCHANT CONSOLE</div>
+      <div class="brand-title">轻松收款，<br>专注每一天的生意。</div>
+      <p class="brand-sub">收款、订单和结算，一处掌握。<br>从 Telegram 助手开始你的商户之旅。</p>
+      <div class="illus">
+        <div class="illus-card">
+          <div class="ic-head"><i><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg></i>账户钱包</div>
+          <div class="illus-bars">
+            <i style="height:34%"></i><i style="height:52%"></i><i style="height:44%"></i>
+            <i style="height:66%"></i><i style="height:58%"></i><i class="hot" style="height:92%"></i><i class="hot" style="height:100%"></i>
+          </div>
         </div>
+        <div class="illus-badge"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.6-2.4A11.9 11.9 0 0112 2 11.9 11.9 0 013.4 7.6c0 5.6 3.6 10.4 8.6 12.4 5-2 8.6-6.8 8.6-12.4z"/></svg></div>
+        <div class="illus-check"><svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></div>
       </div>
-      <button id="btn-submit" onclick="submitAuth()" class="btn-primary" style="width: 100%; margin-top: 12px; padding: 14px;">立即登录</button>
+      <div class="brand-feats">
+        <span><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>便捷收款</span>
+        <span><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6m4 6V9m4 10V5M4 21h16"/></svg>清晰对账</span>
+        <span><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.6-2.4A11.9 11.9 0 0112 2 11.9 11.9 0 013.4 7.6c0 5.6 3.6 10.4 8.6 12.4 5-2 8.6-6.8 8.6-12.4z"/></svg>安全登录</span>
+      </div>
+      <div class="brand-foot">晴天支付平台 · 商户服务</div>
+    </div>
+
+    <!-- 右栏入口区 -->
+    <div class="entry">
+      <div class="entry-eyebrow">商户入口</div>
+      <h2>开始使用</h2>
+      <p class="welcome">欢迎来到晴天支付平台</p>
+
+      <div class="tabs">
+        <button id="tab-login" class="on" onclick="switchTab('login')" type="button">登录</button>
+        <button id="tab-reg" onclick="switchTab('reg')" type="button">注册</button>
+      </div>
+
+      <!-- 登录 -->
+      <form class="pane on" id="pane-login" onsubmit="return doLogin(event)">
+        <div class="fld"><label>邮箱</label><input id="li-email" type="email" required placeholder="you@example.com" autocomplete="email"></div>
+        <div class="fld"><label>密码</label><input id="li-pw" type="password" required minlength="6" placeholder="请输入密码" autocomplete="current-password"></div>
+        <button class="btn-pri" id="li-btn" type="submit">登 录</button>
+      </form>
+
+      <!-- 注册 -->
+      <form class="pane" id="pane-reg" onsubmit="return doReg(event)">
+        <div class="fld"><label>邮箱</label><input id="rg-email" type="email" required placeholder="you@example.com" autocomplete="email"></div>
+        <div class="fld"><label>邮箱验证码</label>
+          <div class="code-row">
+            <input id="rg-code" type="text" required maxlength="6" inputmode="numeric" placeholder="6 位数字验证码">
+            <button class="code-btn" id="rg-send" type="button" onclick="sendCode()">发送验证码</button>
+          </div>
+        </div>
+        <div class="fld"><label>设置密码</label><input id="rg-pw" type="password" required minlength="6" placeholder="至少 6 位" autocomplete="new-password"></div>
+        <button class="btn-pri" id="rg-btn" type="submit">注 册</button>
+      </form>
+
+      <div class="tg-box">
+        也可通过 Telegram 助手「进入官网」开通账号，系统会自动开通并直接进入后台。
+        <button class="btn-tg" type="button" onclick="location.href='https://t.me/qingtian_boss'">
+          <span class="tg-ic"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M21.9 4.6l-3.1 14.7c-.2 1-.9 1.3-1.7.8l-4.7-3.5-2.3 2.2c-.3.3-.5.5-1 .5l.3-4.8 8.7-7.9c.4-.3-.1-.5-.6-.2L6.8 13.2l-4.6-1.4c-1-.3-1-1 .2-1.5l18-6.9c.8-.3 1.5.2 1.5 1.2z"/></svg></span>
+          <span class="txt">打开 Telegram 助手<small>@qingtian_boss</small></span>
+        </button>
+      </div>
+      <div class="safe-tip"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>与 Lynli 生态同源 · 统一账号安全进入商户中心</div>
     </div>
   </div>
+
+  <div id="toast"></div>
   <script src="assets/api.js"></script>
   <script>
-    let isLogin = true;
-    function switchTab(type) {
-      isLogin = (type === 'login');
-      document.getElementById('tab-login').className = isLogin ? 'tab active' : 'tab';
-      document.getElementById('tab-reg').className = !isLogin ? 'tab active' : 'tab';
-      document.getElementById('code-group').style.display = isLogin ? 'none' : 'block';
-      document.getElementById('btn-submit').textContent = isLogin ? '立即登录' : '注册并入驻';
+    if (getToken()) location.href = "merchant.html";
+
+    function switchTab(t) {
+      document.getElementById('tab-login').classList.toggle("on", t === "login");
+      document.getElementById('tab-reg').classList.toggle("on", t === "reg");
+      document.getElementById('pane-login').classList.toggle("on", t === "login");
+      document.getElementById('pane-reg').classList.toggle("on", t === "reg");
     }
-    let timer = null;
-    async function sendCode() {
-      const email = document.getElementById('email').value.trim();
-      if (!email) return toast('请输入邮箱', true);
-      const btn = document.getElementById('btn-send');
-      btn.disabled = true; btn.textContent = '发送中...';
+
+    async function doLogin(ev) {
+      ev.preventDefault();
+      const email = document.getElementById('li-email').value.trim();
+      const password = document.getElementById('li-pw').value;
+      if (!email || !password) return false;
+      const btn = document.getElementById('li-btn');
+      btn.disabled = true; btn.textContent = "登录中…";
       try {
-        await apiFetch('/passport/auth/send-code', { email });
-        toast('验证码已发送');
-        let sec = 60;
-        btn.textContent = sec + 's 后重试';
-        timer = setInterval(() => {
-          sec--;
-          if (sec <= 0) { clearInterval(timer); btn.disabled = false; btn.textContent = '获取验证码'; } 
-          else { btn.textContent = sec + 's 后重试'; }
-        }, 1000);
-      } catch (e) { toast(e.message, true); btn.disabled = false; btn.textContent = '获取验证码'; }
-    }
-    async function submitAuth() {
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value;
-      const code = document.getElementById('code').value.trim();
-      if (!email || !password) return toast('请填写邮箱和密码', true);
-      if (!isLogin && !code) return toast('请填写验证码', true);
-      const btn = document.getElementById('btn-submit');
-      btn.disabled = true; btn.textContent = '处理中...';
-      try {
-        if (!isLogin) {
-          await apiFetch('/passport/auth/register', { email, password, code });
-          toast('注册成功，正在登录...');
+        const j = await apiFetch("/passport/auth/login", { email: email, password: password });
+        if (j && j.data && j.data.token) {
+          setToken(j.data.token);
+          toast("登录成功，正在进入商户中心");
+          setTimeout(function () { location.href = "merchant.html"; }, 600);
+        } else {
+          toast(j.message || "登录失败，请检查邮箱密码", true);
         }
-        const res = await apiFetch('/passport/auth/login', { email, password });
-        const token = res.data ? res.data.token : res.token;
-        setToken(token);
-        toast('登录成功');
-        setTimeout(() => window.location.href = 'merchant.html', 800);
-      } catch (e) { toast(e.message, true); btn.disabled = false; btn.textContent = isLogin ? '立即登录' : '注册并入驻'; }
+      } catch (e) { toast(e.message || "网络异常，请稍后再试", true); }
+      btn.disabled = false; btn.textContent = "登 录";
+      return false;
+    }
+
+    let cdTimer = null;
+    async function sendCode() {
+      const email = document.getElementById('rg-email').value.trim();
+      if (!email) { toast("请先输入邮箱", true); return; }
+      const btn = document.getElementById('rg-send');
+      btn.disabled = true;
+      try {
+        const j = await apiFetch("/passport/auth/send-code", { email: email });
+        if (j && j.status === "success") {
+          toast("验证码已发送至你的邮箱");
+          let s = 60;
+          btn.textContent = s + "s 后重发";
+          cdTimer = setInterval(function () {
+            s--;
+            if (s <= 0) { clearInterval(cdTimer); btn.textContent = "发送验证码"; btn.disabled = false; }
+            else btn.textContent = s + "s 后重发";
+          }, 1000);
+        } else {
+          toast(j.message || "发送失败", true);
+          btn.disabled = false;
+        }
+      } catch (e) { toast(e.message || "网络异常", true); btn.disabled = false; }
+    }
+
+    async function doReg(ev) {
+      ev.preventDefault();
+      const email = document.getElementById('rg-email').value.trim();
+      const code = document.getElementById('rg-code').value.trim();
+      const password = document.getElementById('rg-pw').value;
+      if (!email || !code || password.length < 6) return false;
+      const btn = document.getElementById('rg-btn');
+      btn.disabled = true; btn.textContent = "注册中…";
+      try {
+        const j = await apiFetch("/passport/auth/register", { email: email, code: code, password: password });
+        if (j && j.data && j.data.token) {
+          setToken(j.data.token);
+          toast("注册成功，正在进入商户中心");
+          setTimeout(function () { location.href = "merchant.html"; }, 600);
+        } else {
+          toast(j.message || "注册失败，请检查验证码", true);
+        }
+      } catch (e) { toast(e.message || "网络异常，请稍后再试", true); }
+      btn.disabled = false; btn.textContent = "注 册";
+      return false;
     }
   </script>
 </body>
