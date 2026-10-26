@@ -26,7 +26,8 @@ function toast(msg, isErr) {
 }
 
 function token() { return localStorage.getItem("qt_token") || ""; }
-function setToken(t) { t ? localStorage.setItem("qt_token", t) : localStorage.removeItem("qt_token"); }
+function setToken(t) { t ? localStorage.setItem("qt_token", t) : localStorage.removeItem("qt_token"); window.my_token = t; }
+window.my_token = token();
 
 async function api(method, path, body) {
   const opt = { method, headers: { "Content-Type": "application/json" } };
