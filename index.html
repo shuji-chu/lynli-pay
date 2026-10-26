@@ -41,16 +41,16 @@
     /* 左侧抽屉主体 */
     .drawer {
       position: fixed !important; top: 0 !important; bottom: 0 !important;
-      left: -100% !important; /* 默认藏在左边 */
+      right: -100% !important; transform: translateX(100%) !important;
       width: 80% !important; max-width: 320px !important;
       background: #ffffff !important;
       z-index: 99999 !important;
       display: flex !important; flex-direction: column !important;
-      transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-      box-shadow: 4px 0 24px rgba(0,0,0,0.1) !important;
-      border-radius: 0 16px 16px 0 !important;
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+      box-shadow: -4px 0 24px rgba(0,0,0,0.1) !important;
+      border-radius: 16px 0 0 16px !important;
     }
-    .drawer.open { left: 0 !important; }
+    .drawer.open { right: 0 !important; transform: translateX(0) !important; }
 
     /* 抽屉头部 */
     .drawer-header {
@@ -113,13 +113,15 @@
   <!-- 抽屉层 -->
   <div class="drawer" id="drawer">
     <div class="drawer-header">
+      <div class="drawer-close" onclick="closeDrawer()">✕</div>
       <div class="drawer-logo-area">
-        <img src="assets/logo.png" alt="晴天支付">
-        <div class="drawer-title">
+        <div class="drawer-title" style="text-align: right; margin-right: 12px;">
           <h2>晴天支付</h2>
           <p>商户服务平台</p>
         </div>
+        <img src="assets/logo.png" alt="晴天支付">
       </div>
+    </div>
       <div class="drawer-close" onclick="closeDrawer()">✕</div>
     </div>
 
