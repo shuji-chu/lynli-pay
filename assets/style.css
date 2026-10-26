@@ -71,3 +71,32 @@ pre { background: #1e293b; color: #e2e8f0; padding: 20px; border-radius: 8px; ov
 @media (min-width: 769px) {
   .mobile-header, .overlay { display: none; }
 }
+
+/* 覆盖之前的抽屉卡片，改为全屏下拉 */
+@media (max-width: 768px) {
+  .nav-links.mobile-show {
+    display: flex;
+    flex-direction: column;
+    position: fixed; /* 固定全屏 */
+    top: 72px; 
+    left: 0; 
+    right: 0; 
+    bottom: 0;
+    background: #fff;
+    padding: 16px 24px;
+    gap: 0;
+    z-index: 999;
+    border-radius: 0; /* 去掉圆角 */
+    box-shadow: none;
+  }
+  .nav-links.mobile-show a {
+    font-size: 18px;
+    padding: 20px 0;
+    border-radius: 0;
+    background: transparent;
+    border-bottom: 1px solid #f0f0f0; /* 列表分割线 */
+    text-align: left; /* 左对齐 */
+    color: var(--text-main);
+    font-weight: 600;
+  }
+}
