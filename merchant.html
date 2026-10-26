@@ -3,203 +3,147 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>商户控制台 - 晴天支付</title>
+  <title>个人资料 - 晴天支付</title>
   <link rel="icon" href="assets/favicon.png">
   <link rel="stylesheet" href="assets/style.css">
   <style>
-    /* 彻底覆盖前台导航，后台专用布局 */
-    body { background: #f0f2f5; }
-    .admin-layout { display: flex; height: 100vh; overflow: hidden; }
+    body { background: #f4f6f8; }
+    .admin-layout { display: flex; min-height: 100vh; }
     
-    /* 侧边栏 */
-    .admin-sidebar { width: 260px; background: #fff; border-right: 1px solid var(--border-color); display: flex; flex-direction: column; flex-shrink: 0; z-index: 10; transition: transform 0.3s; }
-    .admin-logo { padding: 20px 24px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--border-color); }
-    .admin-logo img { width: 32px; height: 32px; border-radius: 8px; }
-    .admin-logo h1 { font-size: 18px; font-weight: 700; margin: 0; }
-    .admin-menu { padding: 16px 12px; flex: 1; overflow-y: auto; }
-    .admin-menu-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 8px; color: var(--text-muted); font-size: 15px; font-weight: 500; cursor: pointer; transition: all 0.2s; margin-bottom: 4px; }
-    .admin-menu-item:hover { background: #f8fafc; color: var(--text-main); }
-    .admin-menu-item.active { background: var(--primary-light); color: var(--primary); }
+    /* 左侧菜单 */
+    .admin-sidebar { width: 240px; background: #fff; border-right: 1px solid var(--border-color); padding: 24px 16px; flex-shrink: 0; }
+    .admin-menu-title { font-size: 12px; color: #999; margin: 16px 12px 8px; letter-spacing: 1px; }
+    .admin-menu-item { padding: 12px 16px; border-radius: 8px; font-size: 14px; color: var(--text-main); cursor: pointer; transition: all 0.2s; margin-bottom: 4px; }
+    .admin-menu-item:hover { background: #f8fafc; }
+    .admin-menu-item.active { background: var(--primary-light); color: var(--primary); font-weight: 600; }
     
-    /* 主内容区 */
-    .admin-main { flex: 1; overflow-y: auto; padding: 24px 32px; }
+    /* 右侧主内容 */
+    .admin-main { flex: 1; padding: 32px 40px; overflow-x: hidden; }
+    .page-title { font-size: 20px; font-weight: 700; margin-bottom: 24px; color: #111; }
     
-    /* 顶部欢迎栏 */
-    .top-welcome { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; }
-    .top-welcome h2 { font-size: 24px; font-weight: 700; margin: 0 0 8px 0; color: #111; }
-    .top-welcome p { color: var(--text-muted); font-size: 14px; margin: 0; }
-    .user-status { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 500; color: #059669; background: #d1fae5; padding: 6px 12px; border-radius: 20px; }
+    /* 区块卡片 */
+    .info-card { background: #fff; border-radius: 12px; padding: 32px; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); margin-bottom: 24px; }
+    .section-title { font-size: 16px; font-weight: 700; color: #111; margin-bottom: 24px; display: flex; align-items: center; gap: 8px; }
+    .section-title::before { content: ''; display: block; width: 4px; height: 16px; background: var(--primary); border-radius: 2px; }
+
+    /* 表单项 */
+    .info-row { margin-bottom: 24px; }
+    .info-label { font-size: 14px; color: var(--text-muted); margin-bottom: 8px; display: block; }
+    .info-value-box { display: flex; align-items: center; background: #f8fafc; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px 16px; gap: 12px; }
+    .info-value-box input { border: none; background: transparent; padding: 0; font-size: 15px; color: #111; width: 100%; outline: none; box-shadow: none; }
+    .copy-btn { background: none; border: none; cursor: pointer; font-size: 18px; color: #999; padding: 4px; border-radius: 4px; transition: all 0.2s; }
+    .copy-btn:hover { color: var(--primary); background: var(--primary-light); }
+
+    /* 长文本密钥框 (RSA) */
+    .key-box { background: #f8fafc; border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; position: relative; }
+    .key-content { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 13px; color: #334155; word-break: break-all; line-height: 1.6; }
+    .key-box .copy-btn { position: absolute; top: 12px; right: 12px; background: #fff; border: 1px solid #e2e8f0; padding: 4px 8px; border-radius: 4px; font-size: 13px; }
+
+    /* 底部按钮组 */
+    .action-row { display: flex; gap: 12px; margin-top: 24px; }
     
-    /* 数据卡片网格 */
-    .metrics-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
-    .metric-card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); }
-    .metric-title { font-size: 13px; color: var(--text-muted); margin-bottom: 12px; font-weight: 500; }
-    .metric-value { font-size: 28px; font-weight: 700; color: #111; display: flex; align-items: baseline; gap: 4px; }
-    .metric-value span { font-size: 14px; font-weight: 500; color: var(--text-muted); }
-    
-    /* 两个并排的面板 */
-    .panels-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
-    .panel { background: #fff; border-radius: 12px; padding: 24px; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); }
-    .panel-title { font-size: 16px; font-weight: 600; margin-bottom: 20px; color: #111; display: flex; justify-content: space-between; align-items: center; }
-    
-    /* 通道统计特殊样式 */
-    .channel-item { display: flex; align-items: center; gap: 16px; padding: 16px; background: #f8fafc; border-radius: 8px; border: 1px solid var(--border-color); }
-    .channel-icon { width: 40px; height: 40px; background: #1677ff; color: #fff; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 20px; }
-    .channel-info { flex: 1; }
-    .channel-info h4 { margin: 0 0 4px 0; font-size: 15px; }
-    .channel-info p { margin: 0; font-size: 12px; color: var(--text-muted); }
-    
-    /* 快速开始列表 */
-    .step-list { list-style: none; padding: 0; margin: 0; }
-    .step-item { display: flex; gap: 16px; margin-bottom: 16px; }
-    .step-num { width: 24px; height: 24px; background: var(--primary-light); color: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: bold; flex-shrink: 0; }
-    .step-text { font-size: 14px; color: var(--text-main); line-height: 1.5; }
-    
-    /* 移动端适配 */
+    /* 移动端 */
     .mobile-topbar { display: none; }
-    @media (max-width: 1024px) {
-      .metrics-grid { grid-template-columns: repeat(2, 1fr); }
-      .panels-row { grid-template-columns: 1fr; }
-    }
     @media (max-width: 768px) {
-      .admin-sidebar { position: fixed; left: -260px; top: 0; bottom: 0; height: 100vh; box-shadow: 2px 0 10px rgba(0,0,0,0.1); }
-      .admin-sidebar.open { left: 0; }
-      .mobile-topbar { display: flex; align-items: center; justify-content: space-between; padding: 16px; background: #fff; border-bottom: 1px solid var(--border-color); margin: -24px -16px 24px -16px; }
-      .admin-main { padding: 16px; }
-      .metrics-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
-      .metric-value { font-size: 20px; }
+      .admin-layout { flex-direction: column; }
+      .admin-sidebar { display: none; }
+      .admin-main { padding: 20px 16px; }
+      .mobile-topbar { display: flex; align-items: center; justify-content: space-between; padding: 16px; background: #fff; border-bottom: 1px solid var(--border-color); margin: -20px -16px 20px -16px; }
+      .info-card { padding: 20px; }
+      .action-row { flex-direction: column; }
+      .action-row button { width: 100%; }
     }
-    .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 9; }
-    .overlay.show { display: block; }
   </style>
 </head>
 <body>
 
   <div class="admin-layout">
-    <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
-
     <!-- 侧边栏 -->
-    <div class="admin-sidebar" id="sidebar">
-      <div class="admin-logo">
-        <img src="assets/logo.png" alt="晴天支付">
-        <h1>晴天商户</h1>
-      </div>
-      <div class="admin-menu">
-        <div class="admin-menu-item active">📊 概览 Dashboard</div>
-        <div class="admin-menu-item" onclick="window.location.href='docs.html'">🔑 API信息</div>
-        <div class="admin-menu-item">⚙ 修改资料</div>
-        <div style="border-top: 1px solid var(--border-color); margin: 16px 0;"></div>
-        <div class="admin-menu-item">📄 订单记录</div>
-        <div class="admin-menu-item">💳 提现记录</div>
-        <div style="border-top: 1px solid var(--border-color); margin: 16px 0;"></div>
-        <div class="admin-menu-item" onclick="logout()" style="color: #ef4444;">🚪 退出登录</div>
-      </div>
+    <div class="admin-sidebar">
+      <div style="font-weight: 700; font-size: 18px; padding: 0 12px 20px; border-bottom: 1px solid var(--border-color);">商户工作台</div>
+      <div class="admin-menu-title">个人资料</div>
+      <div class="admin-menu-item active">API信息</div>
+      <div class="admin-menu-item">修改资料</div>
+      <div class="admin-menu-title">交易与资金</div>
+      <div class="admin-menu-item">订单记录</div>
+      <div class="admin-menu-item">提现记录</div>
+      <div class="admin-menu-title">其他</div>
+      <div class="admin-menu-item" onclick="window.location.href='docs.html'">开发文档</div>
+      <div class="admin-menu-item" style="color: #ef4444;" onclick="logout()">退出登录</div>
     </div>
 
     <!-- 主内容 -->
     <div class="admin-main">
       <div class="mobile-topbar">
-        <div style="font-size: 24px; cursor: pointer;" onclick="toggleMenu()">☰</div>
-        <div style="font-weight: 600;">商户控制台</div>
+        <div style="font-weight: 600; font-size: 18px;">个人资料</div>
+        <div style="color: #ef4444; font-size: 14px;" onclick="logout()">退出</div>
       </div>
 
-      <!-- 欢迎与状态 -->
-      <div class="top-welcome">
-        <div>
-          <h2>欢迎使用晴天支付平台</h2>
-          <p>你好，商户 <span id="mch-name">Hr Amelia</span></p>
-        </div>
-        <div class="user-status">
-          <span style="width: 8px; height: 8px; background: #059669; border-radius: 50%;"></span> 商户状态：正常
-        </div>
-      </div>
+      <div class="page-title">API 信息</div>
 
-      <!-- 数据指标卡片 -->
-      <div class="metrics-grid">
-        <div class="metric-card">
-          <div class="metric-title">可提现余额</div>
-          <div class="metric-value">0.00 <span>CNY</span></div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-title">待提现余额</div>
-          <div class="metric-value">0.00 <span>CNY</span></div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-title">订单总数</div>
-          <div class="metric-value">0 <span>个</span></div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-title">今日订单</div>
-          <div class="metric-value">0 <span>个</span></div>
-        </div>
-      </div>
-
-      <!-- 收入与通道统计 -->
-      <div class="panels-row">
-        <div class="panel">
-          <div class="panel-title">收入统计</div>
-          <div style="display: flex; gap: 24px;">
-            <div>
-              <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">今日收入 (已扣费)</div>
-              <div style="font-size: 20px; font-weight: bold; color: #059669;">+ 0.00 元</div>
-            </div>
-            <div>
-              <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">昨日收入 (已扣费)</div>
-              <div style="font-size: 20px; font-weight: bold; color: #059669;">+ 0.00 元</div>
-            </div>
+      <!-- 基础信息 -->
+      <div class="info-card">
+        <div class="info-row">
+          <label class="info-label">接口地址</label>
+          <div class="info-value-box">
+            <input type="text" value="https://api.lynli.me/" readonly id="api-url">
+            <button class="copy-btn" onclick="copyText('api-url')">⧉</button>
           </div>
         </div>
-
-        <div class="panel">
-          <div class="panel-title">通道统计</div>
-          <div class="channel-item">
-            <div class="channel-icon">支</div>
-            <div class="channel-info">
-              <h4>支付宝通道</h4>
-              <p>费率：8% · 成功率：100%</p>
-            </div>
-            <div style="text-align: right;">
-              <div style="font-size: 12px; color: var(--text-muted);">今日收入</div>
-              <div style="font-weight: bold;">0.00 元</div>
-            </div>
+        <div class="info-row" style="margin-bottom: 0;">
+          <label class="info-label">商户ID</label>
+          <div class="info-value-box">
+            <input type="text" value="5466" readonly id="mch-id">
+            <button class="copy-btn" onclick="copyText('mch-id')">⧉</button>
           </div>
         </div>
       </div>
 
-      <!-- 近 7 天收入走势 (占位) -->
-      <div class="panel" style="margin-bottom: 24px;">
-        <div class="panel-title">近 7 天收入走势</div>
-        <div style="height: 120px; display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; padding-top: 20px; border-bottom: 1px solid var(--border-color);">
-          <!-- 图表占位 -->
-          <div style="flex:1; text-align:center;"><div style="height: 2px; background: #e2e8f0; width: 100%;"></div><div style="font-size: 12px; color: #999; margin-top: 8px;">10-21</div></div>
-          <div style="flex:1; text-align:center;"><div style="height: 2px; background: #e2e8f0; width: 100%;"></div><div style="font-size: 12px; color: #999; margin-top: 8px;">10-22</div></div>
-          <div style="flex:1; text-align:center;"><div style="height: 2px; background: #e2e8f0; width: 100%;"></div><div style="font-size: 12px; color: #999; margin-top: 8px;">10-23</div></div>
-          <div style="flex:1; text-align:center;"><div style="height: 2px; background: #e2e8f0; width: 100%;"></div><div style="font-size: 12px; color: #999; margin-top: 8px;">10-24</div></div>
-          <div style="flex:1; text-align:center;"><div style="height: 2px; background: #e2e8f0; width: 100%;"></div><div style="font-size: 12px; color: #999; margin-top: 8px;">10-25</div></div>
-          <div style="flex:1; text-align:center;"><div style="height: 2px; background: #e2e8f0; width: 100%;"></div><div style="font-size: 12px; color: #999; margin-top: 8px;">10-26</div></div>
-          <div style="flex:1; text-align:center;"><div style="height: 2px; background: #e2e8f0; width: 100%;"></div><div style="font-size: 12px; color: #999; margin-top: 8px;">10-27</div></div>
+      <!-- V1 接口 -->
+      <div class="info-card">
+        <div class="section-title">V1接口（MD5签名方式）</div>
+        <div class="info-row">
+          <label class="info-label">商户 MD5 密钥</label>
+          <div class="info-value-box">
+            <input type="text" value="d0498216697be28ddb79802a9f6b4bae25f8bd4c14ab2c6f" readonly id="md5-key">
+            <button class="copy-btn" onclick="copyText('md5-key')">⧉</button>
+          </div>
+        </div>
+        <div class="action-row">
+          <a href="docs.html" class="btn-outline" style="text-decoration: none; text-align: center;">查看V1开发文档</a>
+          <button class="btn-primary" style="background: #fff0f0; color: #d9534f; border: 1px solid #f5c6cb; box-shadow: none;" onclick="toast('重置功能需联系客服')">重置商户MD5密钥</button>
         </div>
       </div>
 
-      <!-- 快速开始 & 接口信息 -->
-      <div class="panels-row">
-        <div class="panel">
-          <div class="panel-title">新商户快速开始</div>
-          <ul class="step-list">
-            <li class="step-item"><div class="step-num">1</div><div class="step-text">查看商户 ID 和 MD5 密钥</div></li>
-            <li class="step-item"><div class="step-num">2</div><div class="step-text">对接支付接口或测试支付链接</div></li>
-            <li class="step-item"><div class="step-num">3</div><div class="step-text"><a href="docs.html">打开开发文档</a> 开始集成</div></li>
-          </ul>
-          <div style="margin-top: 24px; display: flex; gap: 12px;">
-            <button class="btn-primary" onclick="testPay()">发起测试支付</button>
+      <!-- V2 接口 -->
+      <div class="info-card">
+        <div class="section-title">V2接口（RSA签名方式）</div>
+        
+        <div class="info-row">
+          <label class="info-label">平台公钥</label>
+          <div class="key-box">
+            <div class="key-content" id="rsa-pub">MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA7lfFs/7lC5LybXHjpOS//zD8jDX1kIXzjRN6UpQgHO+elDo+qwtCoiYFOAEWRnp1I2vv4lt9mfVPZB6mcHxEcg5F288UysMSEDIaOtBS+EyhbVbCg8ug9qZNOvKSqpyz1sPv8Yly06i3RQj6+RSuz2qY9zcF3GbKqCBrE9ym/S2bPlpfIKNC3yyguH+5qUl3SagF+ndJobm/ZhmPd9Z/4tfB8cA0HdNZXVmt2yKthCXaTSmg7OpbExlXHsQeccOB7f4UlC45GGy47j2/vFyk1X0RZ1vdvY4EZ8FtUrvp1xdSAnyGbt+YU4WkXiZ5DZx2juf+9W9fjs4wGpkxRjMAmwIDAQAB</div>
+            <button class="copy-btn" onclick="copyText('rsa-pub')">复制</button>
           </div>
         </div>
 
-        <div class="panel">
-          <div class="panel-title">商户凭证</div>
-          <div class="form-group"><label>商户 ID</label><input type="text" id="mch-id" value="5466" readonly style="background: #f8fafc;"></div>
-          <div class="form-group"><label>V1 密钥 (MD5)</label><input type="text" id="mch-key" value="d0498216697be28ddb79802a9f6b4bae25" readonly style="background: #f8fafc;"></div>
+        <div class="info-row">
+          <label class="info-label">商户私钥</label>
+          <div class="key-box">
+            <div class="key-content" id="rsa-pri">MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC5vFjpKFya6Ucskl/RUr368CUiFjHab0eW/uZcmIeBuqYHB4PidcwwGs3CgMUdSTLwi7E4yZq8y99/Bg6++vWGdOshelsML1hqMKypZfvbyn6HB9Kx/G9gzDUV6gMVDEOnzEgERZbpKb7Pp88SBMEzhT/Y4JXg27j4MvSsU0Rqte4aq++d/nydI0hqluFjJ9/Zpl52O0QBLDsJi5gFLffd0R9pLRRasPGysdQDP9Ovt3RDN+YZ70ain8SnwTmxJ+pMty9EnTsVTe+RrfgimpXcUZ5gKfbVREjxC2Hz7CGc+bFt/1SnCyvq03PDiPi+Wc0R1HC5qzZj0TNjvUbW2csjAgMBAAECggEABhQgfbe+hasQWEErCXe8nfm94RA/gZdz0fbiIDv6UX40/2/lc03TLcUWfg+m0CQD1cXWdTYr5Ffm2BQ+wBIcO76ES8nOzma+lI9rtfYFpPjU5PJHcYdREJzIJTdhfCKhT5e0oYSywSPVdiXgzlQVC9j+LAPkZkvDONCSuTglpmCoCSYdiwYPwImAdThdCzhvYRJEMiZbViJRJE6eyzNgBN7pUcdnwdrxEFH4OT8sJYjEa0B2OOQlLRgxfhIRP/TnHzaKV4Zok1j9XwIFsfHRlI0BdD9E4FeWHrQU8P/wp+7xA9AH+VXLxjySmErdSy0/nZ1pYUkirbLsj3g+yF5H8QKBgQDrQVl2ap2vRSaOmUcSWFtpNmPBcI3cqL0VTqakklYW7bo9NIC23DAb/GUCMXNrsUBlZZ+Urb/oYfw5D3vtghzr95rbuemr2QAuCQcLtk3HbV8IU+LovPorB6Yqp0Vhyqjn7U/ocooDoF41XncJmon1gZgUdfstYgP2Q0QCggboqQKBgQDKHSToNm12VdOtXUX0DjGT/nHKk1w6xGHnFeZC0sH5PR50K0bsEzE+SFLLwvqFv6XzwE2CCnsDbkfPVs5YG3f+JOmuRaIhd2jDlNytpVPZmXza0AuJbT5DidmQ7QsH7XdyPKpOgYtHx08Iggl9rGaFf+YtSJMlaka/s3qkOrt46wKBgQDUAyLS2yacbB9hZ7VrTQGkggXIsNzIPbGZ4DXCHrdDFp8+xXAyW6Fnt0B4h4RTS3yTZNA6N5O5o4ShD9lJpHbYGV8QIi36VygYVL5qybKyxVhdsuvNf3GdEdmomvKmPPOXgIEBJShIOGBujGGO4Bzwigg6eFETB0A20UwbTn9XcQKBgQCi5SJd1aAbg8j7LPW4YcgrkyN7NZFb+/M8IDZZHSwhCNWGo2qh0kYaAIhamWb4bSH/droBWRkUBsnxnfDoqhrnxjBguNaXSnoxR8UkXt9ZvY8XfB4QQO+x12R2ndYKKaXfeG16oIX07/oOzV+A3nYymoaVcKzHtwQWdT0fKAb4yQKBgDweGKMAWiFfZbzcg9a8iNhMbuxeA/kJhtdVrdPHuUyB9fxMhdegMI00xk+vVp2Y57BOolL4J3AxSDmTnvO5OpB1iFNvW3/w0/EHFYRbskxeeKPvz4i6oGq2n6Tlr5grfzPm523HjKocIPAiod8+2VtzsJnyhA0ZDk9BFlkDhjAb</div>
+            <button class="copy-btn" onclick="copyText('rsa-pri')">复制</button>
+          </div>
         </div>
+
+        <div class="action-row">
+          <a href="docs.html" class="btn-outline" style="text-decoration: none; text-align: center;">查看V2开发文档</a>
+          <button class="btn-primary" style="background: #fff0f0; color: #d9534f; border: 1px solid #f5c6cb; box-shadow: none;" onclick="toast('重置功能需联系客服')">重置商户RSA密钥对</button>
+        </div>
+      </div>
+
+      <div style="font-size: 13px; color: #888; line-height: 1.8;">
+        <strong>签名方式说明：</strong><br>
+        V1 接口使用 MD5 签名，V2 接口使用 RSA 签名。订单付款成功后的通知会跟随下单接口的签名方式。
       </div>
 
     </div>
@@ -209,24 +153,16 @@
   <script>
     if (!getToken()) window.location.href = 'login.html';
 
-    function toggleMenu() {
-      document.getElementById('sidebar').classList.toggle('open');
-      document.getElementById('overlay').classList.toggle('show');
-    }
-
-    async function testPay() {
-      try {
-        toast('正在发起支付宝支付...');
-        const res = await apiFetch('/pay/create', { out_trade_no: 'ALI' + Date.now(), amount: 0.01 });
-        if (res.code === 200 && res.pay_url) {
-          toast('跳转收银台...');
-          window.location.href = res.pay_url;
-        } else {
-          toast('发起失败: ' + (res.msg || res.message || '未知错误'), true);
-        }
-      } catch (e) {
-        toast(e.message, true);
-      }
+    // 复制功能
+    function copyText(elementId) {
+      const el = document.getElementById(elementId);
+      const text = el.value !== undefined ? el.value : el.innerText;
+      
+      navigator.clipboard.writeText(text).then(() => {
+        toast('已复制到剪贴板');
+      }).catch(err => {
+        toast('复制失败，请长按选择', true);
+      });
     }
   </script>
 </body>
