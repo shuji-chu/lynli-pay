@@ -308,20 +308,20 @@ function pageJoin(loginOnly) {
     <p class="sub" style="text-align: center; margin-bottom: 24px;">使用 Lynli 主站统一账号${isReg ? "，注册后提交入驻申请" : ""}</p>
     
     <label class="f"><span>邮箱</span><input class="input" id="au-email" type="email" placeholder="you@example.com"></label>
-    <label class="f"><span>密码</span><input class="input" id="au-pass" type="password" placeholder="••••••••"></label>
+    <label class="f"><span>密码</span><input class="input" id="au-pass" type="password" placeholder="至少 6 位密码"></label>
     
     ${isReg ? `
     <label class="f" style="margin-top: 12px;">
       <span>邮箱验证码</span>
       <div style="display: flex; gap: 8px;">
-        <input class="input" id="au-code" placeholder="6位验证码" style="flex: 1;">
-        <button class="btn btn-ghost" id="au-send" onclick="sendEmailCode()" style="white-space: nowrap; padding: 0 16px;">获取验证码</button>
+        <input class="input" id="au-code" placeholder="6 位验证码" style="flex: 1;">
+        <button class="btn btn-ghost" id="au-send" onclick="sendEmailCode()" style="white-space: nowrap; padding: 0 16px; border: 1px solid #ccc; background: #f8f9fa; border-radius: 8px; cursor: pointer;">获取验证码</button>
       </div>
     </label>
     ` : ''}
 
     <button class="btn btn-primary" style="width: 100%; margin-top: 24px;" id="au-btn" onclick="doAuth(${isReg})">${isReg ? "注册并入驻" : "登录"}</button>
-    <p class="auth-switch" style="text-align: center; margin-top: 16px; font-size: 13px; color: var(--ink-3);">
+    <p class="auth-switch" style="text-align: center; margin-top: 16px; font-size: 13px; color: #666;">
       ${isReg ? "已有账号？" : "还没有账号？"}
       <a href="#/${isReg ? "merchant" : "merchant/join"}" style="color: var(--blue); text-decoration: none;">${isReg ? "去登录" : "注册入驻"}</a>
     </p>
@@ -339,8 +339,7 @@ window.sendEmailCode = async function() {
   btn.textContent = "发送中...";
   
   try {
-    // 假设后端发送验证码接口为 /passport/auth/send-code（若报错请查看 api_auth.py 确认）
-    await api("POST", "/passport/auth/send-code", { email, type: "register" });
+    await api("POST", "/passport/auth/send-code", { email });
     toast("验证码已发送至邮箱");
     
     let sec = 60;
@@ -356,7 +355,7 @@ window.sendEmailCode = async function() {
       }
     }, 1000);
   } catch (e) {
-    toast(e.message || "发送失败，请检查邮箱", true);
+    toast(e.message || "发送失败，请稍后再试", true);
     btn.disabled = false;
     btn.textContent = "获取验证码";
   }
