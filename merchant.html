@@ -3,6 +3,21 @@
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>商户中心 - 晴天支付</title><link rel="stylesheet" href="assets/style.css">
+  <script src="assets/api.js"></script>
+  <style>
+    /* 手机端适配：抽屉侧边栏 */
+    .mobile-header { display: none; }
+    @media (max-width: 768px) {
+      .dashboard { flex-direction: column; margin: 0; border-radius: 0; min-height: 100vh; }
+      .sidebar { position: fixed; left: -280px; top: 0; bottom: 0; width: 260px; z-index: 1000; transition: left 0.3s; box-shadow: 2px 0 10px rgba(0,0,0,0.1); }
+      .sidebar.open { left: 0; }
+      .main-content { padding: 20px; }
+      .mobile-header { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
+      .menu-btn { font-size: 24px; cursor: pointer; color: #333; }
+      .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 999; }
+      .overlay.show { display: block; }
+    }
+  </style>
 </head>
 <body>
   <div class="header">
@@ -12,7 +27,11 @@
   </div>
 
   <div class="dashboard">
-    <div class="sidebar">
+    <!-- 手机端遮罩 -->
+    <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
+
+    <!-- 侧边栏 -->
+    <div class="sidebar" id="sidebar">
       <div class="menu-title">商户工作台</div>
       <div class="menu-item">用户中心</div>
       <div class="menu-item active">个人资料</div>
@@ -20,34 +39,52 @@
       <div class="menu-title">交易与资金</div>
       <div class="menu-item">订单记录</div>
       <div class="menu-item">提现记录</div>
-      <div class="menu-item">资金明细</div>
       <div class="menu-title">其他</div>
-      <div class="menu-item">聚合收款</div>
       <div class="menu-item"><a href="docs.html">开发文档</a></div>
-      <div class="menu-item"><a href="support.html">联系客服</a></div>
+      <div class="menu-item" onclick="logout()">退出登录</div>
     </div>
 
+    <!-- 右侧主内容 -->
     <div class="main-content">
-      <div class="top-bar">
-        <div class="page-title">个人资料</div>
-        <div><a href="login.html" style="color: #888;">退出登录</a></div>
+      <!-- 手机端汉堡菜单 -->
+      <div class="mobile-header">
+        <div class="menu-btn" onclick="toggleMenu()">☰</div>
+        <h2 style="font-size: 18px; margin: 0;">个人资料</h2>
       </div>
+
+      <div class="top-bar" style="display: none; @media(min-width:769px){display:flex;}">
+        <div class="page-title">个人资料</div>
+        <div><a href="javascript:void(0)" onclick="logout()" style="color: #888;">退出登录</a></div>
+      </div>
+
       <div class="tabs"><div class="tab active">API信息</div><div class="tab">修改资料</div></div>
       
-      <div class="form-group"><label>接口地址</label><div class="input-box"><input type="text" value="https://nzzf.org/" readonly><button>📋</button></div></div>
-      <div class="form-group"><label>商户ID</label><div class="input-box"><input type="text" value="5466" readonly><button>📋</button></div></div>
+      <div class="form-group"><label>接口地址</label><div class="input-box"><input type="text" value="https://nzzf.org/" readonly><button onclick="toast('已复制')">📋</button></div></div>
+      <div class="form-group"><label>商户ID</label><div class="input-box"><input type="text" value="5466" readonly><button onclick="toast('已复制')">📋</button></div></div>
       
       <div style="font-size:16px; font-weight:bold; color:#111; margin: 30px 0 20px;">V1接口（MD5签名方式）：</div>
-      <div class="form-group"><label>商户MD5密钥</label><div class="input-box"><input type="text" value="d0498216697be28ddb79802a9f6b4bae25" readonly><button>📋</button></div></div>
+      <div class="form-group"><label>商户MD5密钥</label><div class="input-box"><input type="text" value="d0498216697be28ddb79802a9f6b4bae25" readonly><button onclick="toast('已复制')">📋</button></div></div>
       
       <div style="display:flex; gap:12px; margin-bottom: 30px;">
-        <a href="docs.html" class="btn-primary">查看V1开发文档</a>
-        <button style="background:#fff0f0; color:#d9534f; border:1px solid #f5c6cb; padding:12px 24px; border-radius:8px; cursor:pointer; font-weight:600;">重置商户MD5密钥</button>
+        <a href="docs.html" class="btn-primary" style="text-decoration: none;">查看V1开发文档</a>
+        <button style="background:#fff0f0; color:#d9534f; border:1px solid #f5c6cb; padding:12px 24px; border-radius:8px; cursor:pointer; font-weight:600;">重置密钥</button>
       </div>
 
       <div style="font-size:16px; font-weight:bold; color:#111; margin: 30px 0 20px;">V2接口（RSA签名方式）：</div>
       <div style="background:#f8f9fa; border:1px dashed #ddd; border-radius:8px; padding:20px; color:#666; font-size:14px;">请联系平台客服获取 RSA 公私钥配置方案。</div>
     </div>
   </div>
+
+  <script>
+    // 检查登录状态
+    if (!getToken()) {
+      window.location.href = 'login.html';
+    }
+    // 抽屉菜单控制
+    function toggleMenu() {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('overlay').classList.toggle('show');
+    }
+  </script>
 </body>
 </html>
