@@ -303,36 +303,113 @@ window.logout = function () { setToken(""); toast("已退出登录"); location.h
 function pageJoin(loginOnly) {
   const isReg = !loginOnly;
   $("#app").innerHTML = `
-  <div class="glass auth-wrap">
-    <h2>${isReg ? "商户入驻" : "商户登录"}</h2>
-    <p class="sub">使用 Lynli 主站统一账号（邮箱 + 密码）${isReg ? "，登录后提交入驻申请" : ""}</p>
+  <div class="glass auth-wrap" style="max-width: 420px; margin: 40px auto; padding: 32px;">
+    <h2 style="text-align: center;">${isReg ? "商户入驻" : "商户登录"}</h2>
+    <p class="sub" style="text-align: center; margin-bottom: 24px;">使用 Lynli 主站统一账号${isReg ? "，注册后提交入驻申请" : ""}</p>
+    
     <label class="f"><span>邮箱</span><input class="input" id="au-email" type="email" placeholder="you@example.com"></label>
     <label class="f"><span>密码</span><input class="input" id="au-pass" type="password" placeholder="••••••••"></label>
-    <button class="btn btn-primary" style="width:100%" id="au-btn" onclick="doAuth(${isReg})">${isReg ? "登录并申请入驻" : "登 录"}</button>
-    <p class="auth-switch">${isReg ? "已有商户身份？" : "还没有入驻？"}<a href="#/${isReg ? "merchant" : "merchant/join"}">${isReg ? "去登录" : "申请入驻"}</a></p>
+    
+    ${isReg ? `
+    <label class="f" style="margin-top: 12px;">
+      <span>邮箱验证码</span>
+      <div style="display: flex; gap: 8px;">
+        <input class="input" id="au-code" placeholder="6位验证码" style="flex: 1;">
+        <button class="btn btn-ghost" id="au-send" onclick="sendEmailCode()" style="white-space: nowrap; padding: 0 16px;">获取验证码</button>
+      </div>
+    </label>
+    ` : ''}
+
+    <button class="btn btn-primary" style="width: 100%; margin-top: 24px;" id="au-btn" onclick="doAuth(${isReg})">${isReg ? "注册并入驻" : "登录"}</button>
+    <p class="auth-switch" style="text-align: center; margin-top: 16px; font-size: 13px; color: var(--ink-3);">
+      ${isReg ? "已有账号？" : "还没有账号？"}
+      <a href="#/${isReg ? "merchant" : "merchant/join"}" style="color: var(--blue); text-decoration: none;">${isReg ? "去登录" : "注册入驻"}</a>
+    </p>
   </div>`;
 }
-window.doAuth = async function (withApply) {
+
+let _codeTimer = null;
+window.sendEmailCode = async function() {
+  const email = ($("#au-email").value || "").trim().toLowerCase();
+  if (!email || !email.includes("@")) { toast("请输入正确的邮箱", true); return; }
+  
+  const btn = $("#au-send");
+  if (btn.disabled) return;
+  btn.disabled = true;
+  btn.textContent = "发送中...";
+  
+  try {
+    // 假设后端发送验证码接口为 /passport/auth/send-code（若报错请查看 api_auth.py 确认）
+    await api("POST", "/passport/auth/send-code", { email, type: "register" });
+    toast("验证码已发送至邮箱");
+    
+    let sec = 60;
+    btn.textContent = `${sec}s 后重试`;
+    _codeTimer = setInterval(() => {
+      sec--;
+      if (sec <= 0) {
+        clearInterval(_codeTimer);
+        btn.disabled = false;
+        btn.textContent = "获取验证码";
+      } else {
+        btn.textContent = `${sec}s 后重试`;
+      }
+    }, 1000);
+  } catch (e) {
+    toast(e.message || "发送失败，请检查邮箱", true);
+    btn.disabled = false;
+    btn.textContent = "获取验证码";
+  }
+};
+
+window.doAuth = async function (isReg) {
   const email = ($("#au-email").value || "").trim().toLowerCase();
   const pass = $("#au-pass").value || "";
   if (!email || !pass) { toast("请输入邮箱和密码", true); return; }
-  const btn = $("#au-btn"); btn.disabled = true;
+  
+  const btn = $("#au-btn"); 
+  if (btn.disabled) return;
+  btn.disabled = true; 
+  btn.textContent = "处理中...";
+
   try {
-    const j = await api("POST", "/passport/auth/login", { email, password: pass });
-    if (!(j.data && j.data.token)) throw new Error(j.message || "登录失败");
-    setToken(j.data.token);
-    toast("登录成功");
-    if (withApply) {
-      const site = prompt("请输入你的站点名称：");
-      if (!site) { location.hash = "#/keys"; return; }
-      const url = prompt("站点地址（可选，如 https://…）：") || "";
-      const notify = prompt("异步通知地址 notify_url（可选）：") || "";
-      await api("POST", "/payplat/merchant/apply", { site_name: site, site_url: url, contact: email, notify_url: notify });
-      toast("入驻申请已提交");
+    if (isReg) {
+      const code = ($("#au-code").value || "").trim();
+      if (!code) throw new Error("请输入邮箱验证码");
+      
+      // 1. 真实注册接口
+      const regRes = await api("POST", "/passport/auth/register", { email, password: pass, code });
+      if (regRes.code !== undefined && regRes.code !== 1 && regRes.code !== 0) {
+         throw new Error(regRes.message || regRes.msg || "注册失败");
+      }
+      toast("注册成功，正在登录...");
     }
-    location.hash = "#/keys";
-  } catch (e) { toast(e.message || e, true); }
-  btn.disabled = false;
+    
+    // 2. 登录接口
+    const loginRes = await api("POST", "/passport/auth/login", { email, password: pass });
+    if (!(loginRes.data && loginRes.data.token)) throw new Error(loginRes.message || "登录失败");
+    
+    setToken(loginRes.data.token);
+    
+    // 3. 提交入驻申请（如果是刚注册或者还未入驻）
+    if (isReg) {
+      const site = prompt("账号已就绪！请输入你的商户站点名称：");
+      if (site) {
+        const url = prompt("站点网址（可选，如 https://xxx.com）：") || "";
+        const notify = prompt("支付异步通知地址 notify_url（可选）：") || "";
+        await api("POST", "/payplat/merchant/apply", { site_name: site, site_url: url, contact: email, notify_url: notify });
+        toast("入驻申请已提交，请等待审核");
+      }
+    }
+    
+    location.hash = "#/keys"; // 进入密钥中心或等待审核页面
+    
+  } catch (e) { 
+    toast(e.message || e, true); 
+  } finally {
+    btn.disabled = false; 
+    btn.textContent = isReg ? "注册并入驻" : "登录";
+  }
 };
 
 async function pageKeys() {
