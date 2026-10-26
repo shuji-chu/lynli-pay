@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>商户中心 - 晴天支付</title><link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <div class="header">
+    <div class="logo"><div class="logo-icon">支</div><div class="logo-text"><h1>晴天支付</h1><p>QingTian Pay</p></div></div>
+    <div class="nav-links"><a href="index.html">首页</a><a href="docs.html">开发者文档</a><a href="merchant.html" class="active">商户中心</a><a href="support.html">帮助支持</a></div>
+    <a href="login.html" class="btn-header">商户入驻</a>
+  </div>
+
+  <div class="dashboard">
+    <div class="sidebar">
+      <div class="menu-title">商户工作台</div>
+      <div class="menu-item">用户中心</div>
+      <div class="menu-item active">个人资料</div>
+      <div class="sub-menu"><div class="active">API信息</div><div>修改资料</div></div>
+      <div class="menu-title">交易与资金</div>
+      <div class="menu-item">订单记录</div>
+      <div class="menu-item">提现记录</div>
+      <div class="menu-item">资金明细</div>
+      <div class="menu-title">其他</div>
+      <div class="menu-item">聚合收款</div>
+      <div class="menu-item"><a href="docs.html">开发文档</a></div>
+      <div class="menu-item"><a href="support.html">联系客服</a></div>
+    </div>
+
+    <div class="main-content">
+      <div class="top-bar">
+        <div class="page-title">个人资料</div>
+        <div><a href="login.html" style="color: #888;">退出登录</a></div>
+      </div>
+      <div class="tabs"><div class="tab active">API信息</div><div class="tab">修改资料</div></div>
+      
+      <div class="form-group"><label>接口地址</label><div class="input-box"><input type="text" value="https://nzzf.org/" readonly><button>📋</button></div></div>
+      <div class="form-group"><label>商户ID</label><div class="input-box"><input type="text" value="5466" readonly><button>📋</button></div></div>
+      
+      <div style="font-size:16px; font-weight:bold; color:#111; margin: 30px 0 20px;">V1接口（MD5签名方式）：</div>
+      <div class="form-group"><label>商户MD5密钥</label><div class="input-box"><input type="text" value="d0498216697be28ddb79802a9f6b4bae25" readonly><button>📋</button></div></div>
+      
+      <div style="display:flex; gap:12px; margin-bottom: 30px;">
+        <a href="docs.html" class="btn-primary">查看V1开发文档</a>
+        <button style="background:#fff0f0; color:#d9534f; border:1px solid #f5c6cb; padding:12px 24px; border-radius:8px; cursor:pointer; font-weight:600;">重置商户MD5密钥</button>
+      </div>
+
+      <div style="font-size:16px; font-weight:bold; color:#111; margin: 30px 0 20px;">V2接口（RSA签名方式）：</div>
+      <div style="background:#f8f9fa; border:1px dashed #ddd; border-radius:8px; padding:20px; color:#666; font-size:14px;">请联系平台客服获取 RSA 公私钥配置方案。</div>
+    </div>
+  </div>
+</body>
+</html>

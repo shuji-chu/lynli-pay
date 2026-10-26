@@ -1,64 +1,34 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>晴天支付 · QingTian Pay — 多商户聚合支付平台</title>
-  <meta name="description" content="晴天支付：与 Lynli 生态同源的统一用户体系多商户聚合支付平台。支付宝 / USDT 双通道，固定 10% 费率，秒级结算。">
-  <link rel="icon" type="image/png" href="./assets/favicon.png">
-  <link rel="apple-touch-icon" href="./assets/logo.png">
-  <link rel="stylesheet" href="./assets/style.css?v=1793039703">
-  <script>
-    window.onerror = function(msg, url, line) {
-      document.body.innerHTML += `<div style="position:fixed;top:0;left:0;right:0;background:red;color:white;z-index:99999;padding:20px;font-size:14px;word-break:break-all;">
-        <b>JS代码报错了！</b><br>原因: ${msg}<br>行号: 第 ${line} 行
-      </div>`;
-    };
-  </script>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>晴天支付 - 首页</title><link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-  <!-- 动态宇航员漂浮背景（纯代码，丝滑 60fps） -->
-  <canvas id="cosmos"></canvas>
-  <div class="aurora" aria-hidden="true"></div>
-
-  <header class="topbar">
-    <a class="brand" href="#/">
-      <img src="./assets/logo.png" alt="晴天支付" class="brand-logo">
-      <span>晴天支付</span><i>QingTian Pay</i>
-    </a>
-    <nav class="topnav">
-      <a href="#/" data-nav="home">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px; vertical-align:-2px;"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-        首页
-      </a>
-      <a href="#/docs" data-nav="docs">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px; vertical-align:-2px;"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path></svg>
-        开发者文档
-      </a>
-      <a href="#/merchant" data-nav="merchant">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px; vertical-align:-2px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-        商户中心
-      </a>
-      <a href="#/support" data-nav="support">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px; vertical-align:-2px;"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-        帮助支持
-      </a>
-    </nav>
-    <a class="btn btn-primary" href="#/merchant/join">商户入驻</a>
-  </header>
-
-  <main id="app"></main>
-
-  <footer class="footer">
-    <img src="./assets/logo.png" alt="" class="f-logo">
-    <div>
-      <b>晴天支付 QingTian Pay</b>
-      <p>统一用户体系 · 专属支付标识 · 资金实时结算 · 支付宝 / USDT 双通道</p>
-      <p class="f-sign">© 2026 晴天 · 与 Lynli 生态深度联动 · Powered by 晴天</p>
+  <div class="header">
+    <div class="logo"><div class="logo-icon">支</div><div class="logo-text"><h1>晴天支付</h1><p>QingTian Pay</p></div></div>
+    <div class="nav-links">
+      <a href="index.html" class="active">首页</a><a href="docs.html">开发者文档</a><a href="merchant.html">商户中心</a><a href="support.html">帮助支持</a>
     </div>
-  </footer>
-
-  <div id="toast" class="toast"></div>
-  <script src="./assets/app.js?v=1793040701"
+    <a href="login.html" class="btn-header">商户入驻</a>
+  </div>
+  <div style="text-align: center; max-width: 800px; margin: 80px auto; padding: 0 20px;">
+    <div style="display:inline-block; background:#fff; border:1px solid #e0eaf3; padding:8px 20px; border-radius:30px; font-size:14px; color:#1e73ff; font-weight:600; margin-bottom:24px;">☀️ 晴天支付 · 与 Lynli 生态同源统一账号</div>
+    <h1 style="font-size: 52px; font-weight: 800; color: #111; margin-bottom: 20px;">一笔资金，<span style="color:#1e73ff;">晴天</span>直达</h1>
+    <p style="font-size: 16px; color: #666; line-height: 1.8; max-width: 650px; margin: 0 auto 40px;">多商户聚合支付平台：复用 Lynli 统一用户体系，审批即得专属支付标识 app_id / app_secret。<br>支付宝、USDT 双通道收款，固定 10% 费率，余额秒级到账、在线提现。</p>
+    <div style="display: flex; background: #fff; padding: 8px; border-radius: 16px; box-shadow: 0 10px 30px rgba(30,115,255,0.08); max-width: 600px; margin: 0 auto 30px; border: 1px solid #e0eaf3;">
+      <input type="text" placeholder="输入商户订单号，查询支付状态…" style="flex:1; border:none; outline:none; padding:12px 20px; font-size:16px; background:transparent;">
+      <button style="background:#1e73ff; color:#fff; border:none; border-radius:10px; padding:0 30px; font-size:16px; font-weight:600; cursor:pointer;">查询</button>
+    </div>
+    <div style="display: flex; justify-content: center; gap: 16px; margin-bottom: 60px;">
+      <a href="login.html" class="btn-primary" style="padding: 16px 40px; border-radius: 100px; font-size: 16px;">立即入驻 · 0 元开户</a>
+      <a href="docs.html" class="btn-outline" style="padding: 16px 40px; border-radius: 100px; font-size: 16px;">查看接入文档</a>
+    </div>
+    <div style="display: flex; gap: 20px; justify-content: center;">
+      <div class="card" style="flex:1; text-align: center;"><h3 style="font-size:48px; color:#1e73ff; font-weight:800; margin-bottom:10px;">10%</h3><p style="font-size:15px; color:#666; font-weight:500;">固定费率 · 无任何隐藏费用</p></div>
+      <div class="card" style="flex:1; text-align: center;"><h3 style="font-size:48px; color:#1e73ff; font-weight:800; margin-bottom:10px;">90%</h3><p style="font-size:15px; color:#666; font-weight:500;">货款实时计入商户余额</p></div>
+      <div class="card" style="flex:1; text-align: center;"><h3 style="font-size:48px; color:#1e73ff; font-weight:800; margin-bottom:10px;">T+0</h3><p style="font-size:15px; color:#666; font-weight:500;">在线提现 · 平台审核打款</p></div>
+    </div>
+  </div>
 </body>
 </html>

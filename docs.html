@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>开发者文档 - 晴天支付</title><link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <div class="header">
+    <div class="logo"><div class="logo-icon">支</div><div class="logo-text"><h1>晴天支付</h1><p>QingTian Pay</p></div></div>
+    <div class="nav-links"><a href="index.html">首页</a><a href="docs.html" class="active">开发者文档</a><a href="merchant.html">商户中心</a><a href="support.html">帮助支持</a></div>
+    <a href="login.html" class="btn-header">商户入驻</a>
+  </div>
+  <div style="max-width: 800px; margin: 40px auto;">
+    <div class="card">
+      <h2 style="margin-bottom: 20px;">快速开始</h2>
+      <p style="margin-bottom: 15px;">1. 登录后前往「商户中心」提交入驻申请。</p>
+      <p style="margin-bottom: 30px;">2. 获取系统自动分配的 <code>app_id</code> 与 <code>app_secret</code>。</p>
+      <h3 style="margin-bottom: 15px;">签名规则（MD5）</h3>
+      <p style="margin-bottom: 15px; color: #666;">剔除 sign 和空值，按参数名 ASCII 升序拼接，末尾直接拼接 app_secret 后进行 MD5 加密。</p>
+      <pre style="background: #f4f6f8; padding: 20px; border-radius: 8px; font-family: monospace;">sign = md5("amount=100.00&app_id=QTxxx..." + app_secret)</pre>
+    </div>
+  </div>
+</body>
+</html>
