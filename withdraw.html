@@ -93,7 +93,8 @@
   <div id="toast"></div>
   <script src="assets/api.js"></script>
   <script>
-    if (!requireLogin()) throw new Error("need login");
+(function(){
+    if (!requireLogin()) return;
     function lynDrawerOpen() { document.getElementById('lynDrawer').classList.add('open'); document.getElementById('lynMask').classList.add('show'); document.body.style.overflow = 'hidden'; }
     function lynDrawerClose() { document.getElementById('lynDrawer').classList.remove('open'); document.getElementById('lynMask').classList.remove('show'); document.body.style.overflow = ''; }
     async function load() {
@@ -134,6 +135,8 @@
       btn.disabled = false;
     }
     load();
-  </script>
+window.lynDrawerOpen = lynDrawerOpen; window.lynDrawerClose = lynDrawerClose;
+})();
+</script>
 </body>
 </html>

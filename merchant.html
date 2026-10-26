@@ -107,7 +107,8 @@
   <div id="toast"></div>
   <script src="assets/api.js"></script>
   <script>
-    if (!requireLogin()) throw new Error("need login");
+(function(){
+    if (!requireLogin()) return;
 
     function lynDrawerOpen() {
       document.getElementById('lynDrawer').classList.add('open');
@@ -180,6 +181,8 @@
           : "<tr><td colspan='5' class='empty-tip'>暂无交易，去发起一笔测试支付试试</td></tr>";
       } catch (e) { toast(e.message || e, true); }
     })();
-  </script>
+window.lynDrawerOpen = lynDrawerOpen; window.lynDrawerClose = lynDrawerClose;
+})();
+</script>
 </body>
 </html>
