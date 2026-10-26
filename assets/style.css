@@ -53,3 +53,5 @@ input:focus { border-color: var(--primary); }
 @media (min-width: 769px) {
   .mobile-header, .overlay { display: none; }
 }
+.logo-text h1 { font-size: 18px; margin: 0; line-height: 1.5; }
+.logo-text p { display: none; }
