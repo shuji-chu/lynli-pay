@@ -8,6 +8,13 @@
   <link rel="icon" type="image/png" href="./assets/favicon.png">
   <link rel="apple-touch-icon" href="./assets/logo.png">
   <link rel="stylesheet" href="./assets/style.css?v=1793039703">
+  <script>
+    window.onerror = function(msg, url, line) {
+      document.body.innerHTML += `<div style="position:fixed;top:0;left:0;right:0;background:red;color:white;z-index:99999;padding:20px;font-size:14px;word-break:break-all;">
+        <b>JS代码报错了！</b><br>原因: ${msg}<br>行号: 第 ${line} 行
+      </div>`;
+    };
+  </script>
 </head>
 <body>
   <!-- 动态宇航员漂浮背景（纯代码，丝滑 60fps） -->
@@ -52,6 +59,6 @@
   </footer>
 
   <div id="toast" class="toast"></div>
-  <script src="./assets/app.js?v=1793040183"
+  <script src="./assets/app.js?v=1793040379"
 </body>
 </html>
