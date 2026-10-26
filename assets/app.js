@@ -1,16 +1,7 @@
-/* ============================================================
-   晴天支付 · 前端逻辑（纯原生 JS，hash 路由）
-   ------------------------------------------------------------
-   路由：#/ 首页 · #/docs 开发者文档 · #/merchant 商户中心 · #/cashier 收银台
-   后端：api.lynli.me（/api/v1/payplat/* + /api/v1/passport/auth/login）
-   ============================================================ */
 "use strict";
 
-const API = (location.hostname === "pay.lynli.me" || location.hostname === "localhost" || location.hostname === "127.0.0.1")
-  ? "https://api.lynli.me/api/v1"
-  : "https://api.lynli.me/api/v1";
+const API = "https://api.lynli.me/api/v1";
 
-/* ---------------- 工具 ---------------- */
 const $ = (s, el) => (el || document).querySelector(s);
 const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const money = v => Number(v || 0).toLocaleString("zh-CN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -18,6 +9,7 @@ const money = v => Number(v || 0).toLocaleString("zh-CN", { minimumFractionDigit
 let _toastTimer = null;
 function toast(msg, isErr) {
   const t = $("#toast");
+  if (!t) return;
   t.textContent = msg;
   t.classList.toggle("err", !!isErr);
   t.classList.add("show");
@@ -26,8 +18,7 @@ function toast(msg, isErr) {
 }
 
 function token() { return localStorage.getItem("qt_token") || ""; }
-function setToken(t) { t ? localStorage.setItem("qt_token", t) : localStorage.removeItem("qt_token"); window.my_token = t; }
-window.my_token = token();
+function setToken(t) { t ? localStorage.setItem("qt_token", t) : localStorage.removeItem("qt_token"); }
 
 async function api(method, path, body) {
   const opt = { method, headers: { "Content-Type": "application/json" } };
@@ -35,322 +26,259 @@ async function api(method, path, body) {
   if (body !== undefined) opt.body = JSON.stringify(body);
   const res = await fetch(API + path, opt);
   let j = null;
-  try { j = await res.json(); } catch (e) { /* ignore */ }
-  if (!res.ok && !(j && (j.data || j.code === 0))) {
+  try { j = await res.json(); } catch (e) { }
+  if (!res.ok) {
     const msg = (j && (j.message || j.msg)) || ("请求失败 HTTP " + res.status);
     throw new Error(msg);
   }
   return j;
 }
 
-/* ---------------- 动态宇航员漂浮背景（纯代码，60fps 丝滑） ---------------- */
-function startCosmos() {
-  const cv = $("#cosmos"), ctx = cv.getContext("2d");
-  let W, H, dpr, t0 = performance.now();
-  const stars = [];
-  // 宇航员：位置/姿态/呼吸相位
-  const astro = { x: .78, y: .3, s: 1, rot: 0, phase: Math.random() * 6.28 };
-  function resize() {
-    dpr = Math.min(window.devicePixelRatio || 1, 2);
-    W = cv.clientWidth; H = cv.clientHeight;
-    cv.width = W * dpr; cv.height = H * dpr;
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    stars.length = 0;
-    const n = Math.round(W * H / 16000);
-    for (let i = 0; i < n; i++) stars.push({
-      x: Math.random() * W, y: Math.random() * H,
-      r: Math.random() * 1.6 + .4, a: Math.random() * .5 + .15,
-      tw: Math.random() * 6.28, sp: Math.random() * .5 + .2,
-      dx: (Math.random() - .5) * .06, dy: (Math.random() - .5) * .04,
-    });
-  }
-  // 用路径绘制一个小宇航员（白色宇航服 + 蓝色面罩 + 背包 + 漂浮姿态）
-  function drawAstro(x, y, s, rot, breathe) {
-    ctx.save();
-    ctx.translate(x, y); ctx.rotate(rot); ctx.scale(s, s);
-    // 安全绳淡出弧线
-    ctx.strokeStyle = "rgba(30,111,217,.18)"; ctx.lineWidth = 1.2;
-    ctx.beginPath(); ctx.moveTo(-44, 10); ctx.quadraticCurveTo(-110, -30 + breathe * 2, -170, -8); ctx.stroke();
-    // 背包
-    ctx.fillStyle = "rgba(120,170,230,.85)";
-    roundRect(-30, -20, 20, 34, 7); ctx.fill();
-    // 身体
-    ctx.fillStyle = "rgba(255,255,255,.96)";
-    roundRect(-16, -24, 32, 44, 14); ctx.fill();
-    ctx.strokeStyle = "rgba(30,111,217,.25)"; ctx.lineWidth = 1.4; ctx.stroke();
-    // 头盔
-    ctx.beginPath(); ctx.arc(0, -34, 15, 0, 6.283);
-    ctx.fillStyle = "rgba(255,255,255,.97)"; ctx.fill(); ctx.stroke();
-    // 面罩（蓝天反光）
-    const g = ctx.createLinearGradient(-8, -42, 8, -28);
-    g.addColorStop(0, "#2f7fe0"); g.addColorStop(1, "#8ec9ff");
-    ctx.beginPath(); ctx.ellipse(1, -35, 9, 7, -.2, 0, 6.283);
-    ctx.fillStyle = g; ctx.fill();
-    // 手脚（漂浮姿态）
-    ctx.fillStyle = "rgba(255,255,255,.92)";
-    ctx.save(); ctx.translate(14, -6); ctx.rotate(.6 + Math.sin(breathe) * .1); roundRect(0, -4, 22, 8, 4); ctx.fill(); ctx.restore();
-    ctx.save(); ctx.translate(-16, 8); ctx.rotate(2.4); roundRect(0, -4, 20, 8, 4); ctx.fill(); ctx.restore();
-    ctx.save(); ctx.translate(-8, 22); ctx.rotate(1.9 + Math.cos(breathe) * .08); roundRect(-4, 0, 9, 16, 4.5); ctx.fill(); ctx.restore();
-    ctx.save(); ctx.translate(8, 24); ctx.rotate(1.4 - Math.cos(breathe) * .08); roundRect(-4, 0, 9, 16, 4.5); ctx.fill(); ctx.restore();
-    ctx.restore();
-  }
-  function roundRect(x, y, w, h, r) {
-    ctx.beginPath();
-    ctx.moveTo(x + r, y);
-    ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
-    ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
-  }
-  let raf, last = 0, running = true;
-  function frame(now) {
-    if (!running) return;
-    raf = requestAnimationFrame(frame);
-    if (now - last < 1000 / 60) return; // 稳定 60fps
-    last = now;
-    const t = (now - t0) / 1000;
-    ctx.clearRect(0, 0, W, H);
-    // 星尘：缓慢漂移 + 闪烁
-    for (const s of stars) {
-      s.x += s.dx; s.y += s.dy;
-      if (s.x < -4) s.x = W + 4; if (s.x > W + 4) s.x = -4;
-      if (s.y < -4) s.y = H + 4; if (s.y > H + 4) s.y = -4;
-      const a = s.a * (.6 + .4 * Math.sin(s.tw + t * s.sp * 2));
-      ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, 6.283);
-      ctx.fillStyle = "rgba(30,111,217," + a.toFixed(3) + ")"; ctx.fill();
-    }
-    // 宇航员：极度丝滑的多重正弦漂浮 + 缓慢自转 + 呼吸
-    astro.phase += .008;
-    const bx = W * astro.x + Math.sin(t * .32) * 26 + Math.sin(t * .13 + 1.7) * 14;
-    const by = H * astro.y + Math.cos(t * .27) * 30 + Math.sin(t * .19 + .6) * 12;
-    astro.rot = Math.sin(t * .21) * .18 + Math.sin(t * .09) * .08;
-    const br = Math.sin(t * 1.6) * .5; // 呼吸相位
-    drawAstro(bx, by, Math.min(1.15, Math.max(.8, W / 1100)), astro.rot, br);
-  }
-  resize();
-  window.addEventListener("resize", resize);
-  document.addEventListener("visibilitychange", () => {
-    running = !document.hidden;
-    if (running) { t0 = performance.now() - last; raf = requestAnimationFrame(frame); }
-  });
-  raf = requestAnimationFrame(frame);
-}
-
-/* ---------------- 路由 ---------------- */
+// ================= 路由定义 =================
 const routes = {
-  "": pageHome, "docs": pageDocs, "merchant": pageMerchant, "merchant/join": pageJoin, "join": pageJoin,
-  "keys": pageMerchant, "cashier": pageCashier, "support": pageSupport
+  "": pageHome,
+  "docs": pageDocs,
+  "merchant": pageMerchant,
+  "merchant/join": pageJoin,
+  "join": pageJoin,
+  "support": pageSupport,
+  "cashier": pageCashier
 };
 
 function nav() {
   const h = (location.hash || "#/").replace(/^#\//, "").split("?")[0];
   (routes[h] || pageHome)();
   document.querySelectorAll(".topnav a").forEach(a =>
-    a.classList.toggle("on", a.dataset.nav === ((h.startsWith("merchant") || ["join","keys","orders","withdraw"].includes(h)) ? "merchant" : h)));
-  window.scrollTo({ top: 0, behavior: "instant" in window ? "instant" : "auto" });
+    a.classList.toggle("on", a.dataset.nav === (h.startsWith("merchant") || ["join"].includes(h) ? "merchant" : h))
+  );
+  window.scrollTo({ top: 0 });
 }
 
-/* ---------------- 首页 ---------------- */
+// ================= 各页面逻辑 =================
+
+// 1. 首页
 function pageHome() {
   $("#app").innerHTML = `
-  <section class="hero">
-    <span class="pill">☀️ 晴天支付 · 与 Lynli 生态同源统一账号</span>
-    <h1>一笔资金，<em>晴天</em>直达</h1>
-    <p class="sub">多商户聚合支付平台：复用 Lynli 统一用户体系，审批即得专属支付标识 app_id / app_secret。支付宝、USDT 双通道收款，固定 10% 费率，余额秒级到账、在线提现。</p>
-    <div class="searchbar">
-      <input id="home-q" placeholder="输入商户订单号，查询支付状态…" />
-      <button class="btn btn-primary" onclick="homeSearch()">查询</button>
+  <div style="max-width: 1000px; margin: 60px auto; padding: 0 20px; text-align: center;">
+    <div style="display:inline-block; background:#e8f1ff; color:#1e73ff; padding:6px 16px; border-radius:20px; font-size:14px; font-weight:bold; margin-bottom:20px;">
+      ☀️ 晴天支付 · 与 Lynli 生态同源统一账号
     </div>
-    <div class="hero-cta">
-      <a class="btn btn-primary" href="#/merchant/join">立即入驻 · 0 元开户</a>
-      <a class="btn btn-ghost" href="#/docs">查看接入文档</a>
-    </div>
-  </section>
-  <section class="fee-band">
-    <div class="glass fee-card"><b>10%</b><span>固定费率 · 无任何隐藏费用</span></div>
-    <div class="glass fee-card"><b>90%</b><span>货款实时计入商户余额</span></div>
-    <div class="glass fee-card"><b>T+0</b><span>在线提现 · 平台审核打款</span></div>
-  </section>
-  <section class="feats">
-    <div class="glass feat"><div class="ic">🪪</div><h3>统一用户体系</h3><p>直接使用 Lynli 主站账号登录，商户申请自动绑定真实 user_id，一号通行、无需重复注册。</p></div>
-    <div class="glass feat"><div class="ic">🔐</div><h3>专属支付标识</h3><p>审批通过即刻生成 app_id 与 app_secret，每一笔订单流水都通过 app_id 精准归属，账目清晰可对。</p></div>
-    <div class="glass feat"><div class="ic">💸</div><h3>资金与费率</h3><p>收款统一走平台支付宝通道，固定抽成 10%，剩余 90% 实时计入商户余额，随时在线申请提现。</p></div>
-    <div class="glass feat"><div class="ic">🛡️</div><h3>MD5 安全部名</h3><p>参数 ASCII 升序拼接 + app_secret 摘要，网关验签放行；回调同样带签名，伪造请求无法通过。</p></div>
-    <div class="glass feat"><div class="ic">₿</div><h3>USDT 双通道</h3><p>支付宝之外提供 TRC20 USDT 收款，链上到账自动匹配订单，适合跨境与匿名场景。</p></div>
-    <div class="glass feat"><div class="ic">⚡</div><h3>异步通知</h3><p>支付成功即时回调商户 notify_url，带 MD5 签名与重试机制，业务侧可放心异步发货。</p></div>
-  </section>`;
-}
-window.homeSearch = function () {
-  const v = ($("#home-q").value || "").trim();
-  if (!v) { toast("请输入订单号", true); return; }
-  location.hash = "#/cashier?trade_no=" + encodeURIComponent(v);
-};
-
-/* ---------------- 开发者文档 ---------------- */
-function pageDocs() {
-  $("#app").innerHTML = `
-  <div class="glass" style="max-width:900px; margin:40px auto; padding:40px; border-radius:24px; display:flex; gap:30px;">
-    <aside style="width:200px; flex-shrink:0;">
-      <h3 style="font-size:16px; margin-bottom:15px; color:var(--ink);">接入指南</h3>
-      <div style="display:flex; flex-direction:column; gap:10px; font-size:14px;">
-        <a href="javascript:void(0)" style="color:var(--blue); font-weight:bold;">快速开始</a>
-        <a href="javascript:void(0)" style="color:#666;">签名规则</a>
-        <a href="javascript:void(0)" style="color:#666;">支付网关</a>
-        <a href="javascript:void(0)" style="color:#666;">异步通知</a>
-      </div>
-    </aside>
+    <h1 style="font-size: 48px; color: #111; margin-bottom: 20px;">一笔资金，<span style="color:#1e73ff;">晴天</span>直达</h1>
+    <p style="color: #666; font-size: 16px; line-height: 1.6; max-width: 600px; margin: 0 auto 40px;">
+      多商户聚合支付平台：复用 Lynli 统一用户体系，审批即得专属支付标识 app_id / app_secret。<br>支付宝、USDT 双通道收款，固定 10% 费率，余额秒级到账、在线提现。
+    </p>
     
-    <article style="flex:1; border-left:1px solid #eee; padding-left:30px;">
-      <h2 style="font-size:24px; margin-bottom:20px;">快速开始</h2>
-      <p style="color:#444; font-size:14px; margin-bottom:15px; line-height:1.6;">1. 登录后前往「商户中心」提交入驻申请。</p>
-      <p style="color:#444; font-size:14px; margin-bottom:15px; line-height:1.6;">2. 获取系统自动分配的 <code>app_id</code> 与 <code>app_secret</code>。</p>
-      <p style="color:#444; font-size:14px; margin-bottom:30px; line-height:1.6;">3. 按下方签名规则调用网关下单。</p>
+    <div style="display:flex; max-width:500px; margin:0 auto 40px; background:#fff; border-radius:12px; padding:8px; box-shadow:0 4px 20px rgba(0,0,0,0.05);">
+      <input type="text" placeholder="输入商户订单号，查询支付状态…" style="flex:1; border:none; outline:none; padding:12px 16px; font-size:15px;">
+      <button onclick="location.hash='#/cashier'" style="background:#1e73ff; color:#fff; border:none; border-radius:8px; padding:0 24px; font-size:15px; cursor:pointer;">查询</button>
+    </div>
 
-      <h2 style="font-size:20px; margin-bottom:15px;">签名规则（MD5）</h2>
-      <p style="color:#444; font-size:14px; margin-bottom:10px;">剔除 <code>sign</code> 和空值，按参数名 ASCII 升序拼接，末尾直接拼接 <code>app_secret</code> 后进行 MD5 加密，取 32 位小写。</p>
-      <pre style="background:#f4f6f8; padding:15px; border-radius:8px; font-size:13px; color:#333; overflow-x:auto; margin-bottom:30px;">
-params = { app_id, out_trade_no, amount, name, timestamp }
-raw  = "amount=100.00&app_id=QTxxx&name=订单&out_trade_no=M1001&timestamp=1735689600" + app_secret
-sign = md5(raw)</pre>
-
-      <h2 style="font-size:20px; margin-bottom:15px;">支付网关·下单</h2>
-      <p style="color:#444; font-size:14px; margin-bottom:10px;"><strong>POST</strong> <code>/api/v1/payplat/gateway/submit</code></p>
-      <table style="width:100%; border-collapse:collapse; font-size:14px; margin-bottom:30px;">
-        <tr style="background:#f8fafc; border-bottom:1px solid #eee;">
-          <th style="padding:10px; text-align:left;">参数</th>
-          <th style="padding:10px; text-align:left;">必填</th>
-          <th style="padding:10px; text-align:left;">说明</th>
-        </tr>
-        <tr style="border-bottom:1px solid #eee;"><td style="padding:10px;">app_id</td><td style="padding:10px;">是</td><td style="padding:10px;">平台分配商户标识</td></tr>
-        <tr style="border-bottom:1px solid #eee;"><td style="padding:10px;">out_trade_no</td><td style="padding:10px;">是</td><td style="padding:10px;">商户唯一订单号</td></tr>
-        <tr style="border-bottom:1px solid #eee;"><td style="padding:10px;">amount</td><td style="padding:10px;">是</td><td style="padding:10px;">金额（元）</td></tr>
-      </table>
-    </article>
+    <div style="display:flex; gap:20px; justify-content:center;">
+      <a href="#/merchant/join" style="display:inline-block; background:#1e73ff; color:#fff; padding:12px 32px; border-radius:24px; text-decoration:none; font-weight:bold;">立即入驻 · 0 元开户</a>
+      <a href="#/docs" style="display:inline-block; background:#fff; color:#1e73ff; border:1px solid #1e73ff; padding:12px 32px; border-radius:24px; text-decoration:none; font-weight:bold;">查看接入文档</a>
+    </div>
+    
+    <div style="margin-top: 60px; display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+      <div style="background:#fff; padding:30px; border-radius:16px; flex:1; min-width:200px; box-shadow:0 4px 20px rgba(0,0,0,0.03);">
+        <h3 style="font-size: 36px; color: #1e73ff; margin-bottom: 10px;">10%</h3>
+        <p style="color: #666; font-size: 14px;">固定费率 · 无任何隐藏费用</p>
+      </div>
+      <div style="background:#fff; padding:30px; border-radius:16px; flex:1; min-width:200px; box-shadow:0 4px 20px rgba(0,0,0,0.03);">
+        <h3 style="font-size: 36px; color: #1e73ff; margin-bottom: 10px;">90%</h3>
+        <p style="color: #666; font-size: 14px;">货款实时计入商户余额</p>
+      </div>
+      <div style="background:#fff; padding:30px; border-radius:16px; flex:1; min-width:200px; box-shadow:0 4px 20px rgba(0,0,0,0.03);">
+        <h3 style="font-size: 36px; color: #1e73ff; margin-bottom: 10px;">T+0</h3>
+        <p style="color: #666; font-size: 14px;">在线提现 · 平台审核打款</p>
+      </div>
+    </div>
   </div>`;
 }
 
+// 2. 开发者文档
+function pageDocs() {
+  $("#app").innerHTML = `
+  <div style="max-width: 1000px; margin: 40px auto; padding: 0 20px; display: flex; gap: 30px;">
+    <div style="width: 240px; flex-shrink: 0;">
+      <div style="background: #fff; border-radius: 16px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); position: sticky; top: 100px;">
+        <h3 style="font-size: 16px; color: #111; margin-bottom: 16px;">接入指南</h3>
+        <div style="display: flex; flex-direction: column; gap: 12px; font-size: 14px;">
+          <a href="#/docs" style="color: #1e73ff; font-weight: bold; text-decoration: none;">快速开始</a>
+          <a href="#/docs" style="color: #666; text-decoration: none;">签名规则</a>
+          <a href="#/docs" style="color: #666; text-decoration: none;">支付网关</a>
+        </div>
+      </div>
+    </div>
+    
+    <div style="flex: 1; background: #fff; border-radius: 16px; padding: 40px; box-shadow: 0 4px 20px rgba(0,0,0,0.03);">
+      <h1 style="font-size: 28px; margin-bottom: 24px;">快速开始</h1>
+      <p style="color: #444; font-size: 15px; line-height: 1.8; margin-bottom: 16px;">1. 使用 Lynli 主站账号登录商户中心，提交站点信息申请入驻；</p>
+      <p style="color: #444; font-size: 15px; line-height: 1.8; margin-bottom: 16px;">2. 平台审批通过后，在「API 密钥」页获取 <code style="background:#f4f6f8; padding:2px 6px; border-radius:4px; color:#d63384;">app_id</code> 与 <code style="background:#f4f6f8; padding:2px 6px; border-radius:4px; color:#d63384;">app_secret</code>；</p>
+      <p style="color: #444; font-size: 15px; line-height: 1.8; margin-bottom: 24px;">3. 按下方签名规则调用网关下单，把用户引导至收银台完成支付；</p>
+
+      <h2 style="font-size: 22px; margin-bottom: 20px;">签名规则（MD5）</h2>
+      <p style="color: #444; font-size: 15px; line-height: 1.8; margin-bottom: 16px;">所有网关请求必须携带 <code style="background:#f4f6f8; padding:2px 6px; border-radius:4px; color:#d63384;">sign</code>。生成方式：</p>
+      <pre style="background: #f8f9fa; padding: 20px; border-radius: 8px; font-family: monospace; font-size: 14px; overflow-x: auto; border: 1px solid #eee;">
+params = { app_id, out_trade_no, amount, name, timestamp }
+raw  = "amount=100.00&app_id=QTxxx&name=订单&out_trade_no=M1001&timestamp=1735689600" + app_secret
+sign = md5(raw) // 32 位小写</pre>
+    </div>
+  </div>`;
+}
+
+// 3. 商户中心 (100% 复刻截图)
 function pageMerchant() {
   if (!token()) { pageJoin(true); return; }
   
-  // 提取本地暂存的用户信息，如果没有就兜底
   let uInfo = {};
   try { uInfo = JSON.parse(localStorage.getItem("userInfo") || "{}"); } catch(e){}
-  const mockUid = uInfo.id || "1024"; 
+  const mockUid = uInfo.id || "5466"; 
+  const mockMd5 = "d0498216697be28ddb79802a9f6b4bae25";
 
   $("#app").innerHTML = `
-  <div style="display:flex; min-height:100vh; background:#f0f5f9; font-family:-apple-system,sans-serif;">
+  <div style="display: flex; min-height: calc(100vh - 70px); background: #f0f5f9; font-family: -apple-system, sans-serif;">
     <!-- 左侧导航栏 -->
-    <aside style="width:260px; background:#fff; border-right:1px solid #e5eaef; padding:24px 16px; flex-shrink:0;">
-      <div style="display:flex; align-items:center; gap:10px; margin-bottom:30px;">
-        <div style="width:40px; height:40px; background:var(--blue); color:#fff; border-radius:12px; display:flex; justify-content:center; align-items:center; font-size:20px;">支</div>
-        <div><h2 style="font-size:16px; margin:0; color:#111;">晴天</h2><p style="font-size:11px; color:#888; margin:0;">商户服务平台</p></div>
+    <div style="width: 250px; background: #fff; border-right: 1px solid #e5eaef; padding: 20px 0; flex-shrink: 0;">
+      <div style="padding: 0 20px; margin-bottom: 30px; display: flex; align-items: center; gap: 12px;">
+        <div style="width: 40px; height: 40px; background: #1e73ff; color: #fff; border-radius: 10px; display: flex; justify-content: center; align-items: center; font-size: 20px; font-weight: bold;">支</div>
+        <div>
+          <div style="font-size: 16px; font-weight: bold; color: #111;">晴天</div>
+          <div style="font-size: 12px; color: #888;">商户服务平台</div>
+        </div>
       </div>
 
-      <p style="font-size:12px; color:#888; margin-bottom:10px;">商户工作台</p>
-      <div style="background:#e8f1ff; color:var(--blue); padding:12px; border-radius:8px; display:flex; align-items:center; gap:10px; font-size:14px; font-weight:bold;">
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-        个人资料
-      </div>
-      <div style="padding:10px 0 10px 40px; display:flex; flex-direction:column; gap:15px; font-size:13px; border-left:1px solid #e5eaef; margin-left:20px;">
-        <a href="javascript:void(0)" style="color:var(--blue); text-decoration:none;">API信息</a>
-        <a href="javascript:void(0)" style="color:#666; text-decoration:none;">修改资料</a>
-      </div>
-
-      <p style="font-size:12px; color:#888; margin:20px 0 10px;">交易与资金</p>
-      <div style="display:flex; flex-direction:column; gap:12px; font-size:14px; color:#444;">
-        <a href="javascript:void(0)" style="text-decoration:none; color:#444; display:flex; gap:10px;"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#888" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>订单记录</a>
-        <a href="javascript:void(0)" style="text-decoration:none; color:#444; display:flex; gap:10px;"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#888" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>提现记录</a>
-      </div>
-    </aside>
-
-    <!-- 右侧内容区 -->
-    <main style="flex:1; padding:24px;">
-      <header style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
-        <div style="display:flex; align-items:center; gap:15px; font-size:18px; font-weight:bold; color:#111;">
-          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#333" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+      <div style="padding: 0 12px;">
+        <div style="font-size: 12px; color: #888; margin-bottom: 10px; padding-left: 8px;">商户工作台</div>
+        
+        <div style="background: #e8f1ff; color: #1e73ff; padding: 12px 16px; border-radius: 8px; font-size: 14px; font-weight: bold; display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
           个人资料
         </div>
-        <div style="display:flex; align-items:center; gap:15px;">
-          <div style="width:36px; height:36px; background:#e8f1ff; border-radius:50%; display:flex; justify-content:center; align-items:center; color:var(--blue);">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+        
+        <div style="padding-left: 40px; border-left: 1px solid #e5eaef; margin-left: 24px; margin-bottom: 30px;">
+          <div style="padding: 10px 0; color: #1e73ff; font-size: 14px; font-weight: bold;">API信息</div>
+          <div style="padding: 10px 0; color: #666; font-size: 14px; cursor: pointer;">修改资料</div>
+        </div>
+
+        <div style="font-size: 12px; color: #888; margin-bottom: 10px; padding-left: 8px;">交易与资金</div>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <div style="padding: 12px 16px; color: #444; font-size: 14px; display: flex; align-items: center; gap: 10px; cursor: pointer;">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#888" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+            订单记录
           </div>
-          <a href="javascript:void(0)" onclick="logout()" style="color:#666;"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg></a>
-        </div>
-      </header>
-
-      <h1 style="font-size:28px; margin-bottom:24px; color:#111;">个人资料</h1>
-
-      <div style="background:#fff; border-radius:16px; box-shadow:0 4px 20px rgba(0,0,0,0.03); padding:24px;">
-        <!-- Tabs -->
-        <div style="display:flex; border-bottom:1px solid #eee; margin-bottom:30px;">
-          <div style="padding:10px 20px; border-bottom:2px solid var(--blue); color:var(--blue); font-weight:bold; font-size:15px;">API信息</div>
-          <div style="padding:10px 20px; color:#666; font-size:15px;">修改资料</div>
-        </div>
-
-        <!-- API 信息表单 -->
-        <div style="margin-bottom:24px;">
-          <label style="display:block; font-size:14px; color:#555; margin-bottom:10px;">接口地址</label>
-          <div style="display:flex; background:#f8fbff; border:1px solid #e0eaf3; border-radius:8px; overflow:hidden;">
-            <input type="text" value="https://pay.lynli.me/" readonly style="flex:1; border:none; background:transparent; padding:12px 16px; color:#333; outline:none;">
-            <button style="background:#e8f1ff; border:none; border-left:1px solid #e0eaf3; padding:0 16px; color:var(--blue); cursor:pointer;">📋</button>
+          <div style="padding: 12px 16px; color: #444; font-size: 14px; display: flex; align-items: center; gap: 10px; cursor: pointer;">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#888" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+            提现记录
           </div>
-        </div>
-
-        <div style="margin-bottom:40px;">
-          <label style="display:block; font-size:14px; color:#555; margin-bottom:10px;">商户ID</label>
-          <div style="display:flex; background:#f8fbff; border:1px solid #e0eaf3; border-radius:8px; overflow:hidden;">
-            <input type="text" value="${mockUid}" readonly style="flex:1; border:none; background:transparent; padding:12px 16px; color:#333; outline:none;">
-            <button style="background:#e8f1ff; border:none; border-left:1px solid #e0eaf3; padding:0 16px; color:var(--blue); cursor:pointer;">📋</button>
-          </div>
-        </div>
-
-        <h3 style="font-size:16px; color:#111; margin-bottom:20px;">V1接口（MD5签名方式）：</h3>
-        <div style="margin-bottom:20px;">
-          <label style="display:block; font-size:14px; color:#555; margin-bottom:10px;">商户MD5密钥</label>
-          <div style="display:flex; background:#f8fbff; border:1px solid #e0eaf3; border-radius:8px; overflow:hidden;">
-            <input type="text" id="md5-key" value="d0498216697be28ddb79802a9f6b4bae25" readonly style="flex:1; border:none; background:transparent; padding:12px 16px; color:#333; outline:none;">
-            <button onclick="copyTxt(document.getElementById('md5-key').value)" style="background:#e8f1ff; border:none; border-left:1px solid #e0eaf3; padding:0 16px; color:var(--blue); cursor:pointer;">📋</button>
-          </div>
-        </div>
-
-        <div style="display:flex; gap:15px; margin-bottom:40px;">
-          <button class="btn btn-primary" style="padding:10px 24px; border-radius:8px; font-size:14px;" onclick="location.hash='#/docs'">查看V1开发文档</button>
-          <button class="btn btn-ghost" style="padding:10px 24px; border-radius:8px; font-size:14px; color:#d9534f; border-color:#f5c6cb; background:#f8d7da;">重置商户MD5密钥</button>
-        </div>
-
-        <h3 style="font-size:16px; color:#111; margin-bottom:20px;">V2接口（RSA签名方式）：</h3>
-        <div style="background:#fff3cd; color:#856404; padding:15px; border-radius:8px; font-size:13px;">
-          请前往开发者文档查看如何配置 RSA 公私钥。
         </div>
       </div>
-    </main>
+    </div>
+
+    <!-- 右侧内容区 -->
+    <div style="flex: 1; padding: 30px 40px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 15px 24px; border-radius: 12px; margin-bottom: 24px; box-shadow: 0 2px 10px rgba(0,0,0,0.02);">
+        <div style="display: flex; align-items: center; gap: 16px; font-size: 16px; font-weight: bold; color: #333;">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+          个人资料
+        </div>
+        <div style="display: flex; align-items: center; gap: 20px;">
+          <div style="width: 36px; height: 36px; background: #e8f1ff; border-radius: 50%; display: flex; justify-content: center; align-items: center; color: #1e73ff;">
+             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+          </div>
+          <a href="javascript:void(0)" onclick="logout()" style="color: #666;">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+          </a>
+        </div>
+      </div>
+
+      <h1 style="font-size: 32px; color: #111; margin-bottom: 24px;">个人资料</h1>
+
+      <div style="background: #fff; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); padding: 30px;">
+        <div style="display: flex; border-bottom: 1px solid #eee; margin-bottom: 30px;">
+          <div style="padding: 10px 24px; border-bottom: 2px solid #1e73ff; color: #1e73ff; font-weight: bold; font-size: 15px;">API信息</div>
+          <div style="padding: 10px 24px; color: #666; font-size: 15px; cursor: pointer;">修改资料</div>
+        </div>
+
+        <div style="max-width: 600px;">
+          <div style="margin-bottom: 24px;">
+            <label style="display: block; font-size: 14px; color: #555; margin-bottom: 8px;">接口地址</label>
+            <div style="display: flex; background: #f8fbff; border: 1px solid #e0eaf3; border-radius: 8px; overflow: hidden;">
+              <input type="text" value="https://nzzf.org/" readonly style="flex: 1; border: none; background: transparent; padding: 12px 16px; color: #333; outline: none; font-size: 14px;">
+              <button onclick="copyTxt('https://nzzf.org/')" style="background: #f0f5fa; border: none; border-left: 1px solid #e0eaf3; padding: 0 16px; color: #1e73ff; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                 <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+              </button>
+            </div>
+          </div>
+
+          <div style="margin-bottom: 40px;">
+            <label style="display: block; font-size: 14px; color: #555; margin-bottom: 8px;">商户ID</label>
+            <div style="display: flex; background: #f8fbff; border: 1px solid #e0eaf3; border-radius: 8px; overflow: hidden;">
+              <input type="text" value="${mockUid}" readonly style="flex: 1; border: none; background: transparent; padding: 12px 16px; color: #333; outline: none; font-size: 14px;">
+              <button onclick="copyTxt('${mockUid}')" style="background: #f0f5fa; border: none; border-left: 1px solid #e0eaf3; padding: 0 16px; color: #1e73ff; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                 <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+              </button>
+            </div>
+          </div>
+
+          <h3 style="font-size: 16px; color: #111; margin-bottom: 20px;">V1接口（MD5签名方式）：</h3>
+          <div style="margin-bottom: 20px;">
+            <label style="display: block; font-size: 14px; color: #555; margin-bottom: 8px;">商户MD5密钥</label>
+            <div style="display: flex; background: #f8fbff; border: 1px solid #e0eaf3; border-radius: 8px; overflow: hidden;">
+              <input type="text" value="${mockMd5}" readonly style="flex: 1; border: none; background: transparent; padding: 12px 16px; color: #333; outline: none; font-size: 14px;">
+              <button onclick="copyTxt('${mockMd5}')" style="background: #f0f5fa; border: none; border-left: 1px solid #e0eaf3; padding: 0 16px; color: #1e73ff; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                 <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+              </button>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 16px; margin-bottom: 40px;">
+            <a href="#/docs" style="background: #1e73ff; color: #fff; padding: 10px 24px; border-radius: 6px; text-decoration: none; font-size: 14px;">查看V1开发文档</a>
+            <button style="background: #fff0f0; color: #d9534f; border: 1px solid #f5c6cb; padding: 10px 24px; border-radius: 6px; font-size: 14px; cursor: pointer;">重置商户MD5密钥</button>
+          </div>
+
+          <h3 style="font-size: 16px; color: #111; margin-bottom: 16px;">V2接口（RSA签名方式）：</h3>
+          <div style="background: #fff; border: 1px dashed #ccc; border-radius: 8px; padding: 20px; text-align: center; color: #666; font-size: 14px;">
+            联系客服获取 RSA 公私钥配置
+          </div>
+        </div>
+      </div>
+    </div>
   </div>`;
 }
 
-window.logout = function () { setToken(""); toast("已退出登录"); location.hash = "#/"; };
-
+// 4. 登录/入驻
 function pageJoin(loginOnly) {
   const isReg = !loginOnly;
   $("#app").innerHTML = `
-  <div class="glass auth-wrap" style="max-width: 420px; margin: 40px auto; padding: 32px;">
-    <h2 style="text-align: center;">${isReg ? "商户入驻" : "商户登录"}</h2>
-    <p class="sub" style="text-align: center; margin-bottom: 24px;">使用 Lynli 主站统一账号${isReg ? "，注册后提交入驻申请" : ""}</p>
+  <div style="max-width: 440px; margin: 60px auto; padding: 40px; background: #fff; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05);">
+    <h2 style="text-align: center; font-size: 24px; color: #111; margin-bottom: 10px;">${isReg ? "商户入驻" : "商户登录"}</h2>
+    <p style="text-align: center; color: #666; font-size: 14px; margin-bottom: 30px;">使用 Lynli 主站统一账号${isReg ? "，注册后提交入驻申请" : ""}</p>
     
-    <label class="f"><span>邮箱</span><input class="input" id="au-email" type="email" placeholder="you@example.com"></label>
-    <label class="f"><span>密码</span><input class="input" id="au-pass" type="password" placeholder="至少 6 位密码"></label>
+    <div style="margin-bottom: 20px;">
+      <label style="display: block; font-size: 14px; color: #333; margin-bottom: 8px;">邮箱</label>
+      <input id="au-email" type="email" placeholder="you@example.com" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; outline: none; box-sizing: border-box;">
+    </div>
+    
+    <div style="margin-bottom: 20px;">
+      <label style="display: block; font-size: 14px; color: #333; margin-bottom: 8px;">密码</label>
+      <input id="au-pass" type="password" placeholder="至少 6 位密码" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; outline: none; box-sizing: border-box;">
+    </div>
     
     ${isReg ? `
-    <label class="f" style="margin-top: 12px;">
-      <span>邮箱验证码</span>
-      <div style="display: flex; gap: 8px;">
-        <input class="input" id="au-code" placeholder="6 位验证码" style="flex: 1;">
-        <button class="btn btn-ghost" id="au-send" onclick="sendEmailCode()" style="white-space: nowrap; padding: 0 16px; border: 1px solid #ccc; background: #f8f9fa; border-radius: 8px; cursor: pointer;">获取验证码</button>
+    <div style="margin-bottom: 24px;">
+      <label style="display: block; font-size: 14px; color: #333; margin-bottom: 8px;">邮箱验证码</label>
+      <div style="display: flex; gap: 10px;">
+        <input id="au-code" placeholder="6 位验证码" style="flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 8px; outline: none;">
+        <button id="au-send" onclick="sendEmailCode()" style="padding: 0 16px; background: #f0f5fa; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; white-space: nowrap; color: #333;">获取验证码</button>
       </div>
-    </label>
+    </div>
     ` : ''}
 
-    <button class="btn btn-primary" style="width: 100%; margin-top: 24px;" id="au-btn" onclick="doAuth(${isReg})">${isReg ? "注册并入驻" : "登录"}</button>
-    <p class="auth-switch" style="text-align: center; margin-top: 16px; font-size: 13px; color: #666;">
+    <button id="au-btn" onclick="doAuth(${isReg})" style="width: 100%; padding: 14px; background: #1e73ff; color: #fff; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; font-weight: bold;">${isReg ? "注册并入驻" : "登录"}</button>
+    
+    <p style="text-align: center; margin-top: 20px; font-size: 14px; color: #666;">
       ${isReg ? "已有账号？" : "还没有账号？"}
-      <a href="#/${isReg ? "merchant" : "merchant/join"}" style="color: var(--blue); text-decoration: none;">${isReg ? "去登录" : "注册入驻"}</a>
+      <a href="#/${isReg ? "merchant" : "merchant/join"}" style="color: #1e73ff; text-decoration: none;">${isReg ? "去登录" : "注册入驻"}</a>
     </p>
   </div>`;
 }
@@ -414,9 +342,10 @@ window.doAuth = async function (isReg) {
     if (!(loginRes.data && loginRes.data.token)) throw new Error(loginRes.message || "登录失败");
     
     setToken(loginRes.data.token);
+    if (loginRes.data.user) {
+      localStorage.setItem("userInfo", JSON.stringify(loginRes.data.user));
+    }
     toast("登录成功！");
-    
-    // 登录成功直接刷新页面，路由会自动跳转
     setTimeout(() => { location.reload(); }, 800);
     
   } catch (e) { 
@@ -427,199 +356,76 @@ window.doAuth = async function (isReg) {
   }
 };
 
-function pageMerchant() {
-  if (!token()) { pageJoin(true); return; }
-  
-  $("#app").innerHTML = `<div class="glass auth-wrap" style="text-align:center; padding: 50px 20px;">
-    <div class="success-ic" style="background:#28a745; color:#fff; font-size:36px; padding:20px; border-radius:50%; display:inline-block; margin-bottom:20px; width: 40px; height: 40px; line-height: 40px;">✓</div>
-    <h2>已成功登录</h2>
-    <p class="sub">欢迎回来！你的账号已就绪。</p>
-    <div style="margin-top:30px; display:flex; gap:10px; justify-content:center;">
-      <button class="btn btn-ghost" onclick="logout()">退出登录</button>
-    </div>
-  </div>`;
-}
-
 window.logout = function () { 
   setToken(""); 
+  localStorage.removeItem("userInfo");
   toast("已退出登录"); 
   location.hash = "#/"; 
 };
 
-async function pageKeys() {
-  if (!token()) { pageJoin(true); return; }
-  mcShell("keys", '<div class="empty" style="color:var(--ink-3)">加载中…</div>');
-  try {
-    const j = await api("GET", "/payplat/merchant/info");
-    const m = j.data;
-    if (!m || m.status !== 1) { location.hash = "#/merchant"; return; }
-    mcShell("keys", `
-      <div class="kpis">
-        <div class="kpi" style="background:rgba(255,255,255,.7);border:1px solid var(--line);border-radius:14px">
-          <b>¥${money(m.balance)}</b><span>可提现余额</span></div>
-        <div class="kpi" style="background:rgba(255,255,255,.7);border:1px solid var(--line);border-radius:14px">
-          <b>¥${money(m.total_amount)}</b><span>累计流水</span></div>
-        <div class="kpi" style="background:rgba(255,255,255,.7);border:1px solid var(--line);border-radius:14px">
-          <b>¥${money(m.total_fee)}</b><span>累计手续费</span></div>
-        <div class="kpi" style="background:rgba(255,255,255,.7);border:1px solid var(--line);border-radius:14px">
-          <b>¥${money(m.frozen)}</b><span>提现冻结</span></div>
-      </div>
-      <h3 style="margin-bottom:6px">站点信息</h3>
-      <p style="font-size:14px;color:var(--ink-2)">${esc(m.site_name)} · ${esc(m.site_url || "未填写站点地址")} ·
-        <span class="badge ok">已通过审核</span></p>
-      <h3 style="margin:20px 0 4px">API 密钥</h3>
-      <p style="font-size:13px;color:var(--ink-3)">请妥善保管 app_secret，泄露将导致资金风险。点击可复制。</p>
-      <div class="key-box"><span style="font-weight:700;color:var(--ink-2)">app_id</span><code>${esc(m.app_id)}</code>
-        <button class="btn btn-ghost btn-sm" onclick="copyTxt('${esc(m.app_id)}')">复制</button></div>
-      <div class="key-box"><span style="font-weight:700;color:var(--ink-2)">app_secret</span><code>${esc(m.app_secret)}</code>
-        <button class="btn btn-ghost btn-sm" onclick="copyTxt('${esc(m.app_secret)}')">复制</button></div>`);
-  } catch (e) { toast(e.message || e, true); }
-}
-window.copyTxt = function (t) {
-  (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject())
-    .then(() => toast("已复制到剪贴板"))
-    .catch(() => {
-      const ta = document.createElement("textarea");
-      ta.value = t; document.body.appendChild(ta); ta.select();
-      document.execCommand("copy"); ta.remove(); toast("已复制到剪贴板");
-    });
-};
-
-async function pageOrders() {
-  if (!token()) { pageJoin(true); return; }
-  mcShell("orders", '<p style="color:var(--ink-3)">加载中…</p>');
-  try {
-    const j = await api("GET", "/payplat/merchant/orders");
-    const list = j.data || [];
-    const ST = { 0: ["待支付", "warn"], 1: ["已支付", "ok"], 2: ["已结算", "ok"] };
-    mcShell("orders", `
-      <h3 style="margin-bottom:14px">交易流水（近 100 笔）</h3>
-      <div class="tbl-wrap"><table class="tbl">
-        <thead><tr><th>平台单号</th><th>商户单号</th><th>金额</th><th>手续费</th><th>入账</th><th>方式</th><th>状态</th><th>时间</th></tr></thead>
-        <tbody>${list.length ? list.map(o => `<tr>
-          <td><code>${esc(o.trade_no)}</code></td><td>${esc(o.out_trade_no)}</td>
-          <td><b>¥${money(o.amount)}</b></td><td>¥${money(o.fee)}</td><td>¥${money(o.credit)}</td>
-          <td>${o.method === "usdt" ? "USDT" : "支付宝"}</td>
-          <td><span class="badge ${(ST[o.status] || [,"flat"])[1]}">${(ST[o.status] || ["未知"])[0]}</span></td>
-          <td>${new Date(o.created_at * 1000).toLocaleString("zh-CN", { hour12: false })}</td>
-        </tr>`).join("") : '<tr><td colspan="8" style="text-align:center;color:var(--ink-3)">暂无交易</td></tr>'}</tbody>
-      </table></div>`);
-  } catch (e) { toast(e.message || e, true); }
-}
-
-async function pageWithdraw() {
-  if (!token()) { pageJoin(true); return; }
-  mcShell("withdraw", '<p style="color:var(--ink-3)">加载中…</p>');
-  try {
-    const [jm, jw] = await Promise.all([api("GET", "/payplat/merchant/info"), api("GET", "/payplat/merchant/withdrawals")]);
-    const m = jm.data, list = jw.data || [];
-    const ST = { 0: ["待审核", "warn"], 1: ["已打款", "ok"], 2: ["已拒绝", "flat"] };
-    mcShell("withdraw", `
-      <h3 style="margin-bottom:4px">申请提现</h3>
-      <p style="font-size:13px;color:var(--ink-3)">当前可提现余额 <b style="color:var(--blue)">¥${money(m.balance)}</b> · 最低 1 元 · 提交后平台审核打款</p>
-      <div style="display:flex;gap:10px;margin:14px 0 24px;flex-wrap:wrap">
-        <input class="input" id="wd-amt" type="number" min="1" step="0.01" placeholder="提现金额（元）" style="max-width:170px">
-        <input class="input" id="wd-acc" placeholder="收款账号（支付宝账号）" style="max-width:250px">
-        <button class="btn btn-primary" onclick="doWithdraw()">提交申请</button>
-      </div>
-      <h3 style="margin-bottom:12px">提现记录</h3>
-      <div class="tbl-wrap"><table class="tbl">
-        <thead><tr><th>ID</th><th>金额</th><th>收款账号</th><th>状态</th><th>备注</th><th>时间</th></tr></thead>
-        <tbody>${list.length ? list.map(w => `<tr>
-          <td>#${w.id}</td><td><b>¥${money(w.amount)}</b></td><td>${esc(w.account)}</td>
-          <td><span class="badge ${(ST[w.status] || [,"flat"])[1]}">${(ST[w.status] || ["未知"])[0]}</span></td>
-          <td>${esc(w.remark || "-")}</td>
-          <td>${new Date(w.created_at * 1000).toLocaleString("zh-CN", { hour12: false })}</td>
-        </tr>`).join("") : '<tr><td colspan="6" style="text-align:center;color:var(--ink-3)">暂无提现记录</td></tr>'}</tbody>
-      </table></div>`);
-  } catch (e) { toast(e.message || e, true); }
-}
-window.doWithdraw = async function () {
-  const amount = parseFloat($("#wd-amt").value), account = ($("#wd-acc").value || "").trim();
-  if (!(amount >= 1)) { toast("请输入有效金额（最低 1 元）", true); return; }
-  if (!account) { toast("请输入收款账号", true); return; }
-  try {
-    await api("POST", "/payplat/merchant/withdraw", { amount, account, account_type: "alipay" });
-    toast("提现申请已提交，等待审核");
-    pageWithdraw();
-  } catch (e) { toast(e.message || e, true); }
-};
-
-
-/* ---------------- 客服支持 ---------------- */
+// 5. 帮助支持
 function pageSupport() {
   $("#app").innerHTML = `
-  <div class="glass" style="max-width:800px;margin:40px auto;padding:40px;border-radius:24px;">
-    <div style="text-align:center;margin-bottom:40px;">
-      <div style="display:inline-flex;justify-content:center;align-items:center;width:64px;height:64px;background:#e8f1ff;color:var(--blue);border-radius:50%;margin-bottom:16px;">
-        <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+  <div style="max-width: 800px; margin: 40px auto; padding: 40px; background: #fff; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.03);">
+    <div style="text-align: center; margin-bottom: 40px;">
+      <div style="display: inline-flex; justify-content: center; align-items: center; width: 64px; height: 64px; background: #e8f1ff; color: #1e73ff; border-radius: 50%; margin-bottom: 16px;">
+        <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
       </div>
-      <h2 style="font-size:28px;color:var(--ink);margin-bottom:12px;">帮助与支持</h2>
-      <p class="sub">遇到问题？查看常见问题，或联系我们的官方客服。</p>
+      <h2 style="font-size: 28px; color: #111; margin-bottom: 12px;">帮助与支持</h2>
+      <p style="color: #666; font-size: 15px;">遇到问题？查看常见问题，或联系我们的官方客服。</p>
     </div>
 
-    <div style="display:grid;gap:16px;margin-bottom:40px;">
-      <div style="padding:20px;border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,0.6);backdrop-filter:blur(10px);">
-        <h3 style="font-size:16px;margin-bottom:10px;color:var(--ink);display:flex;align-items:center;gap:8px;">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
-          如何接入晴天支付？
-        </h3>
-        <p style="font-size:14px;color:var(--ink-2);line-height:1.6;">登录后前往「商户入驻」，填写站点名称即可生成专属 app_id 与 app_secret，随后即可调用网关。</p>
+    <div style="display: flex; flex-direction: column; gap: 16px; margin-bottom: 40px;">
+      <div style="padding: 20px; border: 1px solid #eee; border-radius: 12px; background: #fafafa;">
+        <h3 style="font-size: 16px; margin-bottom: 10px; color: #111;">如何接入晴天支付？</h3>
+        <p style="font-size: 14px; color: #555; line-height: 1.6;">登录后前往「商户入驻」，填写站点名称即可生成专属 app_id 与 app_secret，随后即可调用网关。</p>
       </div>
-
-      <div style="padding:20px;border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,0.6);backdrop-filter:blur(10px);">
-        <h3 style="font-size:16px;margin-bottom:10px;color:var(--ink);display:flex;align-items:center;gap:8px;">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>
-          提现多久到账？
-        </h3>
-        <p style="font-size:14px;color:var(--ink-2);line-height:1.6;">提现申请提交后由平台人工审核（通常 1-2 小时内），审核通过后自动打款至您的支付宝账号。</p>
-      </div>
-
-      <div style="padding:20px;border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,0.6);backdrop-filter:blur(10px);">
-        <h3 style="font-size:16px;margin-bottom:10px;color:var(--ink);display:flex;align-items:center;gap:8px;">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
-          支付回调没有收到？
-        </h3>
-        <p style="font-size:14px;color:var(--ink-2);line-height:1.6;">请检查您的服务器 443/80 端口是否对外开放，以及是否有防火墙拦截了平台的异步通知 IP。建议查看开发者文档的回调说明。</p>
+      <div style="padding: 20px; border: 1px solid #eee; border-radius: 12px; background: #fafafa;">
+        <h3 style="font-size: 16px; margin-bottom: 10px; color: #111;">提现多久到账？</h3>
+        <p style="font-size: 14px; color: #555; line-height: 1.6;">提现申请提交后由平台人工审核（通常 1-2 小时内），审核通过后自动打款至您的支付宝账号。</p>
       </div>
     </div>
 
-    <div style="text-align:center;padding:36px 20px;border-radius:20px;background:linear-gradient(135deg, var(--blue) 0%, #1a56db 100%);color:#fff;box-shadow:0 10px 25px rgba(30,111,217,0.2);">
-      <div style="display:inline-flex;justify-content:center;align-items:center;width:48px;height:48px;background:rgba(255,255,255,0.2);border-radius:50%;margin-bottom:16px;">
-        <svg viewBox="0 0 24 24" width="24" height="24" fill="#fff"><path d="M21.5 4.5l-19 7.4c-1 .4-1 1.8 0 2.2l4.8 1.8 2.2 6.7c.3.9 1.4 1.1 2 .4l2.6-2.9 4.5 3.3c.8.6 1.9.1 2.1-.8l3.5-16.3c.2-1-.8-1.9-1.7-1.5zm-4.7 4.1l-7.5 6.8-.3 3.3-1.4-4.4 9.2-5.7z"/></svg>
-      </div>
-      <h3 style="font-size:20px;margin-bottom:12px;color:#fff;">没有找到答案？</h3>
-      <p style="font-size:14px;opacity:0.9;margin-bottom:24px;">我们的客服团队在线为你解答疑惑</p>
-      <a href="https://t.me/nzzf" target="_blank" class="btn" style="background:#fff;color:var(--blue);display:inline-flex;align-items:center;justify-content:center;padding:12px 24px;font-weight:600;border-radius:12px;text-decoration:none;gap:8px;">
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M21.5 4.5l-19 7.4c-1 .4-1 1.8 0 2.2l4.8 1.8 2.2 6.7c.3.9 1.4 1.1 2 .4l2.6-2.9 4.5 3.3c.8.6 1.9.1 2.1-.8l3.5-16.3c.2-1-.8-1.9-1.7-1.5zm-4.7 4.1l-7.5 6.8-.3 3.3-1.4-4.4 9.2-5.7z"/></svg>
+    <div style="text-align: center; padding: 40px 20px; border-radius: 16px; background: linear-gradient(135deg, #1e73ff 0%, #1557c4 100%); color: #fff;">
+      <h3 style="font-size: 20px; margin-bottom: 12px; color: #fff;">没有找到答案？</h3>
+      <p style="font-size: 14px; opacity: 0.9; margin-bottom: 24px;">我们的客服团队在线为你解答疑惑</p>
+      <a href="https://t.me/your_support" target="_blank" style="background: #fff; color: #1e73ff; display: inline-block; padding: 12px 24px; font-weight: bold; border-radius: 8px; text-decoration: none;">
         联系 Telegram 客服
       </a>
     </div>
   </div>`;
 }
 
-/* ---------------- 收银台 ---------------- */
+// 6. 收银台
 function pageCashier() {
   $("#app").innerHTML = `
-  <div class="glass" style="max-width:500px; margin:40px auto; padding:40px; border-radius:24px; text-align:center;">
-    <h2 style="font-size:24px; margin-bottom:10px; color:var(--ink);">订单支付</h2>
-    <div style="font-size:36px; font-weight:bold; color:var(--blue); margin:20px 0;">¥ 0.00</div>
-    <p style="color:#666; font-size:14px; margin-bottom:30px;">请选择支付方式完成订单</p>
+  <div style="max-width: 500px; margin: 60px auto; padding: 40px; background: #fff; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); text-align: center;">
+    <span style="display: inline-block; background: #e8f1ff; color: #1e73ff; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: bold; margin-bottom: 20px;">晴天收银台</span>
+    <div style="font-size: 40px; font-weight: bold; color: #111; margin-bottom: 10px;">¥ 0.00</div>
+    <p style="color: #666; font-size: 14px; margin-bottom: 30px;">请选择支付方式</p>
     
-    <div style="display:flex; flex-direction:column; gap:15px;">
-      <button class="btn btn-primary" style="padding:15px; border-radius:12px; font-size:16px; display:flex; justify-content:center; align-items:center; gap:10px;">
-        支付宝支付
-      </button>
-      <button class="btn btn-ghost" style="padding:15px; border-radius:12px; font-size:16px; display:flex; justify-content:center; align-items:center; gap:10px;">
-        USDT (TRC20) 支付
-      </button>
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+      <button style="padding: 16px; border: 2px solid #1e73ff; background: #e8f1ff; color: #1e73ff; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer;">支付宝支付</button>
+      <button style="padding: 16px; border: 1px solid #ddd; background: #fafafa; color: #333; border-radius: 12px; font-size: 16px; cursor: pointer;">USDT (TRC20)</button>
     </div>
-    
-    <p style="color:#999; font-size:12px; margin-top:30px;">请在 15 分钟内完成支付，超时订单将自动关闭。</p>
+    <p style="color: #999; font-size: 12px; margin-top: 30px;">请在 15 分钟内完成支付，超时订单将自动关闭。</p>
   </div>`;
 }
 
-/* ---------------- 启动 ---------------- */
-startCosmos();
-window.addEventListener("hashchange", nav);
+// 工具函数
+window.copyTxt = function(text) {
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(() => toast("已复制"));
+  } else {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand("copy");
+    ta.remove();
+    toast("已复制");
+  }
+};
+
+// 启动
 nav();
