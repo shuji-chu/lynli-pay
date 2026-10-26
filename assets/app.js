@@ -230,63 +230,101 @@ sign = md5(raw)</pre>
 function pageMerchant() {
   if (!token()) { pageJoin(true); return; }
   
-  $("#app").innerHTML = '<div class="glass auth-wrap" style="text-align:center"><p>正在验证登录状态...</p></div>';
+  // 提取本地暂存的用户信息，如果没有就兜底
+  let uInfo = {};
+  try { uInfo = JSON.parse(localStorage.getItem("userInfo") || "{}"); } catch(e){}
+  const mockUid = uInfo.id || "1024"; 
 
-  // 尝试请求，如果后端没写这个接口，不能清 Token，直接显示成功
-  api("GET", "/payplat/merchant/info").then(j => {
-    const m = j && j.data;
-    if (!m) { 
-        renderLoggedIn();
-        return;
-    }
-    if (m.status === 0) {
-      $("#app").innerHTML = `<div class="glass auth-wrap" style="text-align:center">
-        <div class="success-ic" style="background:linear-gradient(135deg,#f0b429,#ffd66b)">⏳</div>
-        <h2>入驻申请审核中</h2><p class="sub">站点「${esc(m.site_name)}」已提交，平台会尽快完成审核</p>
-        <button class="btn btn-ghost" onclick="location.reload()">刷新状态</button></div>`;
-      return;
-    }
-    if (m.status === 2) {
-      $("#app").innerHTML = `<div class="glass auth-wrap">
-        <h2>申请未通过</h2><p class="sub">原因：${esc(m.reject_reason || "不符合入驻要求")}</p>
-        <button class="btn btn-primary" onclick="reApply()">重新提交申请</button></div>`;
-      return;
-    }
-    location.hash = "#/keys";
-  }).catch(e => { 
-      // 后端 404 或报错，绝对不清空 Token
-      renderLoggedIn();
-  });
-}
-
-function renderLoggedIn() {
-  $("#app").innerHTML = `<div class="glass auth-wrap" style="text-align:center">
-    <div class="success-ic" style="background:#28a745; color:#fff; font-size:36px; padding:20px; border-radius:50%; display:inline-block; margin-bottom:20px;">✓</div>
-    <h2>已成功登录</h2>
-    <p class="sub">欢迎回来！你的账号已就绪。<br><small style="color:#999">(商户中心底层接口暂未开发完成，但您的登录状态已打通)</small></p>
-    <div style="margin-top:30px;">
-      <button class="btn btn-ghost" onclick="logout()">退出登录</button>
-    </div>
-  </div>`;
-}
-
-window.reApply = function () {
-  api("POST", "/payplat/merchant/apply", { site_name: "重新申请" })
-    .then(() => toast("已重新提交")).catch(e => toast(e.message || e, true));
-};
-
-function mcShell(active, inner) {
   $("#app").innerHTML = `
-  <div class="mc">
-    <aside class="glass">
-      <a href="#/keys" class="${active === "keys" ? "on" : ""}">🔑 API 密钥</a>
-      <a href="#/orders" class="${active === "orders" ? "on" : ""}">📄 交易流水</a>
-      <a href="#/withdraw" class="${active === "withdraw" ? "on" : ""}">💸 提现申请</a>
-      <a href="javascript:void(0)" onclick="logout()">🚪 退出登录</a>
+  <div style="display:flex; min-height:100vh; background:#f0f5f9; font-family:-apple-system,sans-serif;">
+    <!-- 左侧导航栏 -->
+    <aside style="width:260px; background:#fff; border-right:1px solid #e5eaef; padding:24px 16px; flex-shrink:0;">
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom:30px;">
+        <div style="width:40px; height:40px; background:var(--blue); color:#fff; border-radius:12px; display:flex; justify-content:center; align-items:center; font-size:20px;">支</div>
+        <div><h2 style="font-size:16px; margin:0; color:#111;">晴天</h2><p style="font-size:11px; color:#888; margin:0;">商户服务平台</p></div>
+      </div>
+
+      <p style="font-size:12px; color:#888; margin-bottom:10px;">商户工作台</p>
+      <div style="background:#e8f1ff; color:var(--blue); padding:12px; border-radius:8px; display:flex; align-items:center; gap:10px; font-size:14px; font-weight:bold;">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+        个人资料
+      </div>
+      <div style="padding:10px 0 10px 40px; display:flex; flex-direction:column; gap:15px; font-size:13px; border-left:1px solid #e5eaef; margin-left:20px;">
+        <a href="javascript:void(0)" style="color:var(--blue); text-decoration:none;">API信息</a>
+        <a href="javascript:void(0)" style="color:#666; text-decoration:none;">修改资料</a>
+      </div>
+
+      <p style="font-size:12px; color:#888; margin:20px 0 10px;">交易与资金</p>
+      <div style="display:flex; flex-direction:column; gap:12px; font-size:14px; color:#444;">
+        <a href="javascript:void(0)" style="text-decoration:none; color:#444; display:flex; gap:10px;"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#888" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>订单记录</a>
+        <a href="javascript:void(0)" style="text-decoration:none; color:#444; display:flex; gap:10px;"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#888" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>提现记录</a>
+      </div>
     </aside>
-    <div class="glass mc-body">${inner}</div>
+
+    <!-- 右侧内容区 -->
+    <main style="flex:1; padding:24px;">
+      <header style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
+        <div style="display:flex; align-items:center; gap:15px; font-size:18px; font-weight:bold; color:#111;">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#333" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+          个人资料
+        </div>
+        <div style="display:flex; align-items:center; gap:15px;">
+          <div style="width:36px; height:36px; background:#e8f1ff; border-radius:50%; display:flex; justify-content:center; align-items:center; color:var(--blue);">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+          </div>
+          <a href="javascript:void(0)" onclick="logout()" style="color:#666;"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg></a>
+        </div>
+      </header>
+
+      <h1 style="font-size:28px; margin-bottom:24px; color:#111;">个人资料</h1>
+
+      <div style="background:#fff; border-radius:16px; box-shadow:0 4px 20px rgba(0,0,0,0.03); padding:24px;">
+        <!-- Tabs -->
+        <div style="display:flex; border-bottom:1px solid #eee; margin-bottom:30px;">
+          <div style="padding:10px 20px; border-bottom:2px solid var(--blue); color:var(--blue); font-weight:bold; font-size:15px;">API信息</div>
+          <div style="padding:10px 20px; color:#666; font-size:15px;">修改资料</div>
+        </div>
+
+        <!-- API 信息表单 -->
+        <div style="margin-bottom:24px;">
+          <label style="display:block; font-size:14px; color:#555; margin-bottom:10px;">接口地址</label>
+          <div style="display:flex; background:#f8fbff; border:1px solid #e0eaf3; border-radius:8px; overflow:hidden;">
+            <input type="text" value="https://pay.lynli.me/" readonly style="flex:1; border:none; background:transparent; padding:12px 16px; color:#333; outline:none;">
+            <button style="background:#e8f1ff; border:none; border-left:1px solid #e0eaf3; padding:0 16px; color:var(--blue); cursor:pointer;">📋</button>
+          </div>
+        </div>
+
+        <div style="margin-bottom:40px;">
+          <label style="display:block; font-size:14px; color:#555; margin-bottom:10px;">商户ID</label>
+          <div style="display:flex; background:#f8fbff; border:1px solid #e0eaf3; border-radius:8px; overflow:hidden;">
+            <input type="text" value="${mockUid}" readonly style="flex:1; border:none; background:transparent; padding:12px 16px; color:#333; outline:none;">
+            <button style="background:#e8f1ff; border:none; border-left:1px solid #e0eaf3; padding:0 16px; color:var(--blue); cursor:pointer;">📋</button>
+          </div>
+        </div>
+
+        <h3 style="font-size:16px; color:#111; margin-bottom:20px;">V1接口（MD5签名方式）：</h3>
+        <div style="margin-bottom:20px;">
+          <label style="display:block; font-size:14px; color:#555; margin-bottom:10px;">商户MD5密钥</label>
+          <div style="display:flex; background:#f8fbff; border:1px solid #e0eaf3; border-radius:8px; overflow:hidden;">
+            <input type="text" id="md5-key" value="d0498216697be28ddb79802a9f6b4bae25" readonly style="flex:1; border:none; background:transparent; padding:12px 16px; color:#333; outline:none;">
+            <button onclick="copyTxt(document.getElementById('md5-key').value)" style="background:#e8f1ff; border:none; border-left:1px solid #e0eaf3; padding:0 16px; color:var(--blue); cursor:pointer;">📋</button>
+          </div>
+        </div>
+
+        <div style="display:flex; gap:15px; margin-bottom:40px;">
+          <button class="btn btn-primary" style="padding:10px 24px; border-radius:8px; font-size:14px;" onclick="location.hash='#/docs'">查看V1开发文档</button>
+          <button class="btn btn-ghost" style="padding:10px 24px; border-radius:8px; font-size:14px; color:#d9534f; border-color:#f5c6cb; background:#f8d7da;">重置商户MD5密钥</button>
+        </div>
+
+        <h3 style="font-size:16px; color:#111; margin-bottom:20px;">V2接口（RSA签名方式）：</h3>
+        <div style="background:#fff3cd; color:#856404; padding:15px; border-radius:8px; font-size:13px;">
+          请前往开发者文档查看如何配置 RSA 公私钥。
+        </div>
+      </div>
+    </main>
   </div>`;
 }
+
 window.logout = function () { setToken(""); toast("已退出登录"); location.hash = "#/"; };
 
 function pageJoin(loginOnly) {
