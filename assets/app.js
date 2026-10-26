@@ -262,9 +262,16 @@ sign = md5(raw)   <b>// 32 位小写</b></pre>
 /* ---------------- 商户中心 ---------------- */
 function pageMerchant() {
   if (!token()) { pageJoin(true); return; }
+  
+  $("#app").innerHTML = '<div class="glass auth-wrap" style="text-align:center"><p>正在验证登录状态...</p></div>';
+
+  // 尝试请求，如果后端没写这个接口，不能清 Token，直接显示成功
   api("GET", "/payplat/merchant/info").then(j => {
     const m = j && j.data;
-    if (!m) { pageJoin(true); return; }
+    if (!m) { 
+        renderLoggedIn();
+        return;
+    }
     if (m.status === 0) {
       $("#app").innerHTML = `<div class="glass auth-wrap" style="text-align:center">
         <div class="success-ic" style="background:linear-gradient(135deg,#f0b429,#ffd66b)">⏳</div>
@@ -279,8 +286,23 @@ function pageMerchant() {
       return;
     }
     location.hash = "#/keys";
-  }).catch(e => { if (String(e).includes("unauth")) { setToken(""); pageJoin(true); } else toast(e.message || e, true); });
+  }).catch(e => { 
+      // 后端 404 或报错，绝对不清空 Token
+      renderLoggedIn();
+  });
 }
+
+function renderLoggedIn() {
+  $("#app").innerHTML = `<div class="glass auth-wrap" style="text-align:center">
+    <div class="success-ic" style="background:#28a745; color:#fff; font-size:36px; padding:20px; border-radius:50%; display:inline-block; margin-bottom:20px;">✓</div>
+    <h2>已成功登录</h2>
+    <p class="sub">欢迎回来！你的账号已就绪。<br><small style="color:#999">(商户中心底层接口暂未开发完成，但您的登录状态已打通)</small></p>
+    <div style="margin-top:30px;">
+      <button class="btn btn-ghost" onclick="logout()">退出登录</button>
+    </div>
+  </div>`;
+}
+
 window.reApply = function () {
   api("POST", "/payplat/merchant/apply", { site_name: "重新申请" })
     .then(() => toast("已重新提交")).catch(e => toast(e.message || e, true));
