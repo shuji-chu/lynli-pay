@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>个人资料 - 晴天支付</title>
+  <title>商户控制台 - 晴天支付</title>
   <link rel="icon" href="assets/favicon.png">
   <link rel="stylesheet" href="assets/style.css">
   <style>
@@ -16,6 +16,9 @@
     .admin-menu-item { padding: 12px 16px; border-radius: 8px; font-size: 14px; color: var(--text-main); cursor: pointer; transition: all 0.2s; margin-bottom: 4px; }
     .admin-menu-item:hover { background: #f8fafc; }
     .admin-menu-item.active { background: var(--primary-light); color: var(--primary); font-weight: 600; }
+    .sub-menu { padding-left: 16px; margin-top: 4px; }
+    .sub-item { padding: 10px 16px; font-size: 13px; color: var(--text-muted); cursor: pointer; border-radius: 8px; margin-bottom: 2px; }
+    .sub-item.active { color: var(--primary); background: #f0f7ff; font-weight: 500; }
     
     /* 右侧主内容 */
     .admin-main { flex: 1; padding: 32px 40px; overflow-x: hidden; }
@@ -39,6 +42,14 @@
     .key-content { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 13px; color: #334155; word-break: break-all; line-height: 1.6; }
     .key-box .copy-btn { position: absolute; top: 12px; right: 12px; background: #fff; border: 1px solid #e2e8f0; padding: 4px 8px; border-radius: 4px; font-size: 13px; }
 
+    /* 自定义 Radio 卡片 */
+    .radio-group { display: flex; gap: 12px; margin-bottom: 16px; }
+    .radio-card { flex: 1; border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; text-align: center; cursor: pointer; transition: all 0.2s; font-size: 14px; font-weight: 500; color: var(--text-main); }
+    .radio-card.active { border-color: var(--primary); background: var(--primary-light); color: var(--primary); }
+    
+    /* 禁用状态的按钮 */
+    .btn-disabled { background: #e2e8f0 !important; color: #94a3b8 !important; cursor: not-allowed !important; box-shadow: none !important; border-color: transparent !important; }
+
     /* 底部按钮组 */
     .action-row { display: flex; gap: 12px; margin-top: 24px; }
     
@@ -53,6 +64,8 @@
       .action-row { flex-direction: column; }
       .action-row button { width: 100%; }
     }
+    
+    .hidden { display: none !important; }
   </style>
 </head>
 <body>
@@ -62,8 +75,15 @@
     <div class="admin-sidebar">
       <div style="font-weight: 700; font-size: 18px; padding: 0 12px 20px; border-bottom: 1px solid var(--border-color);">商户工作台</div>
       <div class="admin-menu-title">个人资料</div>
-      <div class="admin-menu-item active">API信息</div>
-      <div class="admin-menu-item">修改资料</div>
+      <div class="admin-menu-item">用户中心</div>
+      
+      <!-- 个人资料下拉 -->
+      <div class="admin-menu-item active" onclick="document.getElementById('submenu').classList.toggle('hidden')">个人资料 ▾</div>
+      <div class="sub-menu" id="submenu">
+        <div class="sub-item active" id="menu-api" onclick="switchPage('api')">API信息</div>
+        <div class="sub-item" id="menu-profile" onclick="switchPage('profile')">修改资料</div>
+      </div>
+
       <div class="admin-menu-title">交易与资金</div>
       <div class="admin-menu-item">订单记录</div>
       <div class="admin-menu-item">提现记录</div>
@@ -75,75 +95,125 @@
     <!-- 主内容 -->
     <div class="admin-main">
       <div class="mobile-topbar">
-        <div style="font-weight: 600; font-size: 18px;">个人资料</div>
+        <div style="font-weight: 600; font-size: 18px;" id="mobile-title">个人资料</div>
         <div style="color: #ef4444; font-size: 14px;" onclick="logout()">退出</div>
       </div>
 
-      <div class="page-title">API 信息</div>
+      <!-- ================= API 信息页 ================= -->
+      <div id="page-api">
+        <div class="page-title">API 信息</div>
 
-      <!-- 基础信息 -->
-      <div class="info-card">
-        <div class="info-row">
-          <label class="info-label">接口地址</label>
-          <div class="info-value-box">
-            <input type="text" value="https://api.lynli.me/" readonly id="api-url">
-            <button class="copy-btn" onclick="copyText('api-url')">⧉</button>
+        <div class="info-card">
+          <div class="info-row">
+            <label class="info-label">接口地址</label>
+            <div class="info-value-box">
+              <input type="text" value="https://api.lynli.me/" readonly id="api-url">
+              <button class="copy-btn" onclick="copyText('api-url')">⧉</button>
+            </div>
+          </div>
+          <div class="info-row" style="margin-bottom: 0;">
+            <label class="info-label">商户ID</label>
+            <div class="info-value-box">
+              <input type="text" value="5466" readonly id="mch-id">
+              <button class="copy-btn" onclick="copyText('mch-id')">⧉</button>
+            </div>
           </div>
         </div>
-        <div class="info-row" style="margin-bottom: 0;">
-          <label class="info-label">商户ID</label>
-          <div class="info-value-box">
-            <input type="text" value="5466" readonly id="mch-id">
-            <button class="copy-btn" onclick="copyText('mch-id')">⧉</button>
+
+        <div class="info-card">
+          <div class="section-title">V1接口（MD5签名方式）</div>
+          <div class="info-row">
+            <label class="info-label">商户 MD5 密钥</label>
+            <div class="info-value-box">
+              <input type="text" value="d0498216697be28ddb79802a9f6b4bae25f8bd4c14ab2c6f" readonly id="md5-key">
+              <button class="copy-btn" onclick="copyText('md5-key')">⧉</button>
+            </div>
+          </div>
+          <div class="action-row">
+            <a href="docs.html" class="btn-outline" style="text-decoration: none; text-align: center;">查看V1开发文档</a>
+            <button class="btn-primary" style="background: #fff0f0; color: #d9534f; border: 1px solid #f5c6cb; box-shadow: none;" onclick="toast('重置功能需联系客服')">重置商户MD5密钥</button>
+          </div>
+        </div>
+
+        <div class="info-card">
+          <div class="section-title">V2接口（RSA签名方式）</div>
+          <div class="info-row">
+            <label class="info-label">平台公钥</label>
+            <div class="key-box">
+              <div class="key-content" id="rsa-pub">MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA7lfFs/7lC5LybXHjpOS//zD8jDX1kIXzjRN6UpQgHO+elDo+qwtCoiYFOAEWRnp1I2vv4lt9mfVPZB6mcHxEcg5F288UysMSEDIaOtBS+EyhbVbCg8ug9qZNOvKSqpyz1sPv8Yly06i3RQj6+RSuz2qY9zcF3GbKqCBrE9ym/S2bPlpfIKNC3yyguH+5qUl3SagF+ndJobm/ZhmPd9Z/4tfB8cA0HdNZXVmt2yKthCXaTSmg7OpbExlXHsQeccOB7f4UlC45GGy47j2/vFyk1X0RZ1vdvY4EZ8FtUrvp1xdSAnyGbt+YU4WkXiZ5DZx2juf+9W9fjs4wGpkxRjMAmwIDAQAB</div>
+              <button class="copy-btn" onclick="copyText('rsa-pub')">复制</button>
+            </div>
+          </div>
+          <div class="info-row">
+            <label class="info-label">商户私钥</label>
+            <div class="key-box">
+              <div class="key-content" id="rsa-pri">MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC5vFjpKFya6Ucskl/RUr368CUiFjHab0eW/uZcmIeBuqYHB4PidcwwGs3CgMUdSTLwi7E4yZq8y99/Bg6++vWGdOshelsML1hqMKypZfvbyn6HB9Kx/G9gzDUV6gMVDEOnzEgERZbpKb7Pp88SBMEzhT/Y4JXg27j4MvSsU0Rqte4aq++d/nydI0hqluFjJ9/Zpl52O0QBLDsJi5gFLffd0R9pLRRasPGysdQDP9Ovt3RDN+YZ70ain8SnwTmxJ+pMty9EnTsVTe+RrfgimpXcUZ5gKfbVREjxC2Hz7CGc+bFt/1SnCyvq03PDiPi+Wc0R1HC5qzZj0TNjvUbW2csjAgMBAAECggEABhQgfbe+hasQWEErCXe8nfm94RA/gZdz0fbiIDv6UX40/2/lc03TLcUWfg+m0CQD1cXWdTYr5Ffm2BQ+wBIcO76ES8nOzma+lI9rtfYFpPjU5PJHcYdREJzIJTdhfCKhT5e0oYSywSPVdiXgzlQVC9j+LAPkZkvDONCSuTglpmCoCSYdiwYPwImAdThdCzhvYRJEMiZbViJRJE6eyzNgBN7pUcdnwdrxEFH4OT8sJYjEa0B2OOQlLRgxfhIRP/TnHzaKV4Zok1j9XwIFsfHRlI0BdD9E4FeWHrQU8P/wp+7xA9AH+VXLxjySmErdSy0/nZ1pYUkirbLsj3g+yF5H8QKBgQDrQVl2ap2vRSaOmUcSWFtpNmPBcI3cqL0VTqakklYW7bo9NIC23DAb/GUCMXNrsUBlZZ+Urb/oYfw5D3vtghzr95rbuemr2QAuCQcLtk3HbV8IU+LovPorB6Yqp0Vhyqjn7U/ocooDoF41XncJmon1gZgUdfstYgP2Q0QCggboqQKBgQDKHSToNm12VdOtXUX0DjGT/nHKk1w6xGHnFeZC0sH5PR50K0bsEzE+SFLLwvqFv6XzwE2CCnsDbkfPVs5YG3f+JOmuRaIhd2jDlNytpVPZmXza0AuJbT5DidmQ7QsH7XdyPKpOgYtHx08Iggl9rGaFf+YtSJMlaka/s3qkOrt46wKBgQDUAyLS2yacbB9hZ7VrTQGkggXIsNzIPbGZ4DXCHrdDFp8+xXAyW6Fnt0B4h4RTS3yTZNA6N5O5o4ShD9lJpHbYGV8QIi36VygYVL5qybKyxVhdsuvNf3GdEdmomvKmPPOXgIEBJShIOGBujGGO4Bzwigg6eFETB0A20UwbTn9XcQKBgQCi5SJd1aAbg8j7LPW4YcgrkyN7NZFb+/M8IDZZHSwhCNWGo2qh0kYaAIhamWb4bSH/droBWRkUBsnxnfDoqhrnxjBguNaXSnoxR8UkXt9ZvY8XfB4QQO+x12R2ndYKKaXfeG16oIX07/oOzV+A3nYymoaVcKzHtwQWdT0fKAb4yQKBgDweGKMAWiFfZbzcg9a8iNhMbuxeA/kJhtdVrdPHuUyB9fxMhdegMI00xk+vVp2Y57BOolL4J3AxSDmTnvO5OpB1iFNvW3/w0/EHFYRbskxeeKPvz4i6oGq2n6Tlr5grfzPm523HjKocIPAiod8+2VtzsJnyhA0ZDk9BFlkDhjAb</div>
+              <button class="copy-btn" onclick="copyText('rsa-pri')">复制</button>
+            </div>
+          </div>
+          <div class="action-row">
+            <a href="docs.html" class="btn-outline" style="text-decoration: none; text-align: center;">查看V2开发文档</a>
+            <button class="btn-primary" style="background: #fff0f0; color: #d9534f; border: 1px solid #f5c6cb; box-shadow: none;" onclick="toast('重置功能需联系客服')">重置商户RSA密钥对</button>
           </div>
         </div>
       </div>
 
-      <!-- V1 接口 -->
-      <div class="info-card">
-        <div class="section-title">V1接口（MD5签名方式）</div>
-        <div class="info-row">
-          <label class="info-label">商户 MD5 密钥</label>
-          <div class="info-value-box">
-            <input type="text" value="d0498216697be28ddb79802a9f6b4bae25f8bd4c14ab2c6f" readonly id="md5-key">
-            <button class="copy-btn" onclick="copyText('md5-key')">⧉</button>
+      <!-- ================= 修改资料页 ================= -->
+      <div id="page-profile" class="hidden">
+        <div class="page-title">个人资料</div>
+
+        <!-- 收款账号设置 -->
+        <div class="info-card">
+          <div class="section-title">收款账号设置</div>
+          
+          <div class="info-label" style="margin-bottom: 12px;">结算方式</div>
+          <div class="radio-group">
+            <div class="radio-card active" id="card-usdt" onclick="selectSettle('usdt')">USDT结算</div>
+            <div class="radio-card" id="card-bank" onclick="selectSettle('bank')">银行卡结算</div>
+          </div>
+
+          <div id="form-usdt">
+            <div class="info-row">
+              <label class="info-label">USDT地址</label>
+              <input type="text" placeholder="请输入您的 USDT 提款地址" style="width: 100%; padding: 14px 16px; border: 1px solid var(--border-color); border-radius: 8px; background: #f8fafc;">
+            </div>
+            <div class="info-row">
+              <label class="info-label">USDT网络</label>
+              <select style="width: 100%; padding: 14px 16px; border: 1px solid var(--border-color); border-radius: 8px; background: #f8fafc; font-size: 15px; outline: none;">
+                <option value="TRC20">TRC20 (Tron)</option>
+                <option value="ERC20">ERC20 (Ethereum)</option>
+                <option value="BEP20">BEP20 (BSC)</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="form-bank" class="hidden">
+            <div class="info-row">
+              <label class="info-label">持卡人姓名</label>
+              <input type="text" placeholder="请输入真实姓名" style="width: 100%; padding: 14px 16px; border: 1px solid var(--border-color); border-radius: 8px; background: #f8fafc;">
+            </div>
+            <div class="info-row">
+              <label class="info-label">银行卡号</label>
+              <input type="text" placeholder="请输入银行卡号" style="width: 100%; padding: 14px 16px; border: 1px solid var(--border-color); border-radius: 8px; background: #f8fafc;">
+            </div>
+          </div>
+
+          <div class="action-row">
+            <button class="btn-primary" onclick="toast('保存接口需等待后端打通')">确定修改</button>
           </div>
         </div>
-        <div class="action-row">
-          <a href="docs.html" class="btn-outline" style="text-decoration: none; text-align: center;">查看V1开发文档</a>
-          <button class="btn-primary" style="background: #fff0f0; color: #d9534f; border: 1px solid #f5c6cb; box-shadow: none;" onclick="toast('重置功能需联系客服')">重置商户MD5密钥</button>
-        </div>
-      </div>
 
-      <!-- V2 接口 -->
-      <div class="info-card">
-        <div class="section-title">V2接口（RSA签名方式）</div>
-        
-        <div class="info-row">
-          <label class="info-label">平台公钥</label>
-          <div class="key-box">
-            <div class="key-content" id="rsa-pub">MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA7lfFs/7lC5LybXHjpOS//zD8jDX1kIXzjRN6UpQgHO+elDo+qwtCoiYFOAEWRnp1I2vv4lt9mfVPZB6mcHxEcg5F288UysMSEDIaOtBS+EyhbVbCg8ug9qZNOvKSqpyz1sPv8Yly06i3RQj6+RSuz2qY9zcF3GbKqCBrE9ym/S2bPlpfIKNC3yyguH+5qUl3SagF+ndJobm/ZhmPd9Z/4tfB8cA0HdNZXVmt2yKthCXaTSmg7OpbExlXHsQeccOB7f4UlC45GGy47j2/vFyk1X0RZ1vdvY4EZ8FtUrvp1xdSAnyGbt+YU4WkXiZ5DZx2juf+9W9fjs4wGpkxRjMAmwIDAQAB</div>
-            <button class="copy-btn" onclick="copyText('rsa-pub')">复制</button>
+        <!-- 支付密码 -->
+        <div class="info-card">
+          <div class="section-title">支付密码</div>
+          <div style="display: flex; align-items: center; justify-content: space-between; background: #f8fafc; border: 1px solid var(--border-color); padding: 20px; border-radius: 8px;">
+            <div>
+              <div style="font-weight: 600; font-size: 15px; margin-bottom: 4px;">未设置</div>
+              <div style="font-size: 13px; color: var(--text-muted);">请先绑定 USDT 提款地址，再设置支付密码。</div>
+            </div>
+            <button class="btn-primary btn-disabled" disabled>请先绑定 USDT 提款地址</button>
           </div>
         </div>
-
-        <div class="info-row">
-          <label class="info-label">商户私钥</label>
-          <div class="key-box">
-            <div class="key-content" id="rsa-pri">MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC5vFjpKFya6Ucskl/RUr368CUiFjHab0eW/uZcmIeBuqYHB4PidcwwGs3CgMUdSTLwi7E4yZq8y99/Bg6++vWGdOshelsML1hqMKypZfvbyn6HB9Kx/G9gzDUV6gMVDEOnzEgERZbpKb7Pp88SBMEzhT/Y4JXg27j4MvSsU0Rqte4aq++d/nydI0hqluFjJ9/Zpl52O0QBLDsJi5gFLffd0R9pLRRasPGysdQDP9Ovt3RDN+YZ70ain8SnwTmxJ+pMty9EnTsVTe+RrfgimpXcUZ5gKfbVREjxC2Hz7CGc+bFt/1SnCyvq03PDiPi+Wc0R1HC5qzZj0TNjvUbW2csjAgMBAAECggEABhQgfbe+hasQWEErCXe8nfm94RA/gZdz0fbiIDv6UX40/2/lc03TLcUWfg+m0CQD1cXWdTYr5Ffm2BQ+wBIcO76ES8nOzma+lI9rtfYFpPjU5PJHcYdREJzIJTdhfCKhT5e0oYSywSPVdiXgzlQVC9j+LAPkZkvDONCSuTglpmCoCSYdiwYPwImAdThdCzhvYRJEMiZbViJRJE6eyzNgBN7pUcdnwdrxEFH4OT8sJYjEa0B2OOQlLRgxfhIRP/TnHzaKV4Zok1j9XwIFsfHRlI0BdD9E4FeWHrQU8P/wp+7xA9AH+VXLxjySmErdSy0/nZ1pYUkirbLsj3g+yF5H8QKBgQDrQVl2ap2vRSaOmUcSWFtpNmPBcI3cqL0VTqakklYW7bo9NIC23DAb/GUCMXNrsUBlZZ+Urb/oYfw5D3vtghzr95rbuemr2QAuCQcLtk3HbV8IU+LovPorB6Yqp0Vhyqjn7U/ocooDoF41XncJmon1gZgUdfstYgP2Q0QCggboqQKBgQDKHSToNm12VdOtXUX0DjGT/nHKk1w6xGHnFeZC0sH5PR50K0bsEzE+SFLLwvqFv6XzwE2CCnsDbkfPVs5YG3f+JOmuRaIhd2jDlNytpVPZmXza0AuJbT5DidmQ7QsH7XdyPKpOgYtHx08Iggl9rGaFf+YtSJMlaka/s3qkOrt46wKBgQDUAyLS2yacbB9hZ7VrTQGkggXIsNzIPbGZ4DXCHrdDFp8+xXAyW6Fnt0B4h4RTS3yTZNA6N5O5o4ShD9lJpHbYGV8QIi36VygYVL5qybKyxVhdsuvNf3GdEdmomvKmPPOXgIEBJShIOGBujGGO4Bzwigg6eFETB0A20UwbTn9XcQKBgQCi5SJd1aAbg8j7LPW4YcgrkyN7NZFb+/M8IDZZHSwhCNWGo2qh0kYaAIhamWb4bSH/droBWRkUBsnxnfDoqhrnxjBguNaXSnoxR8UkXt9ZvY8XfB4QQO+x12R2ndYKKaXfeG16oIX07/oOzV+A3nYymoaVcKzHtwQWdT0fKAb4yQKBgDweGKMAWiFfZbzcg9a8iNhMbuxeA/kJhtdVrdPHuUyB9fxMhdegMI00xk+vVp2Y57BOolL4J3AxSDmTnvO5OpB1iFNvW3/w0/EHFYRbskxeeKPvz4i6oGq2n6Tlr5grfzPm523HjKocIPAiod8+2VtzsJnyhA0ZDk9BFlkDhjAb</div>
-            <button class="copy-btn" onclick="copyText('rsa-pri')">复制</button>
-          </div>
-        </div>
-
-        <div class="action-row">
-          <a href="docs.html" class="btn-outline" style="text-decoration: none; text-align: center;">查看V2开发文档</a>
-          <button class="btn-primary" style="background: #fff0f0; color: #d9534f; border: 1px solid #f5c6cb; box-shadow: none;" onclick="toast('重置功能需联系客服')">重置商户RSA密钥对</button>
-        </div>
-      </div>
-
-      <div style="font-size: 13px; color: #888; line-height: 1.8;">
-        <strong>签名方式说明：</strong><br>
-        V1 接口使用 MD5 签名，V2 接口使用 RSA 签名。订单付款成功后的通知会跟随下单接口的签名方式。
       </div>
 
     </div>
@@ -153,11 +223,42 @@
   <script>
     if (!getToken()) window.location.href = 'login.html';
 
+    // 页面切换
+    function switchPage(page) {
+      if (page === 'api') {
+        document.getElementById('page-api').classList.remove('hidden');
+        document.getElementById('page-profile').classList.add('hidden');
+        document.getElementById('menu-api').classList.add('active');
+        document.getElementById('menu-profile').classList.remove('active');
+        document.getElementById('mobile-title').innerText = 'API信息';
+      } else {
+        document.getElementById('page-api').classList.add('hidden');
+        document.getElementById('page-profile').classList.remove('hidden');
+        document.getElementById('menu-api').classList.remove('active');
+        document.getElementById('menu-profile').classList.add('active');
+        document.getElementById('mobile-title').innerText = '修改资料';
+      }
+    }
+
+    // 结算方式切换
+    function selectSettle(type) {
+      if (type === 'usdt') {
+        document.getElementById('card-usdt').classList.add('active');
+        document.getElementById('card-bank').classList.remove('active');
+        document.getElementById('form-usdt').classList.remove('hidden');
+        document.getElementById('form-bank').classList.add('hidden');
+      } else {
+        document.getElementById('card-usdt').classList.remove('active');
+        document.getElementById('card-bank').classList.add('active');
+        document.getElementById('form-usdt').classList.add('hidden');
+        document.getElementById('form-bank').classList.remove('hidden');
+      }
+    }
+
     // 复制功能
     function copyText(elementId) {
       const el = document.getElementById(elementId);
       const text = el.value !== undefined ? el.value : el.innerText;
-      
       navigator.clipboard.writeText(text).then(() => {
         toast('已复制到剪贴板');
       }).catch(err => {
