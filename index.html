@@ -1,10 +1,18 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <title>晴天支付 - 多商户聚合支付平台</title>
-  <link rel="icon" href="assets/favicon.png"><link rel="stylesheet" href="assets/style.css">
+  <link rel="icon" href="assets/favicon.png">
+  <link rel="stylesheet" href="assets/style.css">
+  
+  <!-- 强制内联，彻底防止缓存覆盖 -->
   <style>
+    /* 桌面端样式恢复 */
     .hero { display: flex; align-items: center; justify-content: space-between; max-width: 1200px; margin: 80px auto; padding: 0 24px; gap: 60px; }
     .hero-text { flex: 1; max-width: 540px; }
     .hero-text h1 { font-size: 56px; line-height: 1.15; font-weight: 800; color: #111; margin-bottom: 24px; letter-spacing: -1px; }
@@ -15,7 +23,40 @@
     .glow { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 400px; height: 400px; background: radial-gradient(circle, rgba(10,102,255,0.15) 0%, rgba(255,255,255,0) 70%); z-index: -1; }
     .mockup { background: #fff; border-radius: 16px; box-shadow: 0 24px 48px -12px rgba(0,0,0,0.1); border: 1px solid var(--border-color); padding: 24px; }
     .query-box { display: flex; gap: 12px; margin-top: 16px; }
+
+    /* 暴力修复移动端菜单 (防所有覆盖) */
     @media (max-width: 768px) {
+      .nav-links { display: none; }
+      .btn-header { display: none; }
+      .menu-toggle { display: block; font-size: 24px; cursor: pointer; color: #111; }
+      
+      /* 当加上 mobile-show 类名时，变成全屏白色 */
+      .nav-links.mobile-show {
+        display: flex !important;
+        flex-direction: column !important;
+        position: fixed !important;
+        top: 72px !important; 
+        left: 0 !important; 
+        right: 0 !important; 
+        bottom: 0 !important;
+        background: #ffffff !important; /* 强制纯白，绝不透明 */
+        z-index: 99999 !important; /* 绝对置顶 */
+        padding: 24px !important;
+        margin: 0 !important;
+        gap: 0 !important;
+        border-top: 1px solid #eee;
+      }
+      
+      .nav-links.mobile-show a {
+        display: block !important;
+        width: 100% !important;
+        font-size: 18px !important;
+        padding: 20px 0 !important;
+        border-bottom: 1px solid #f0f0f0 !important;
+        color: #333 !important;
+        text-align: left !important;
+      }
+      
       .hero { flex-direction: column; margin: 40px auto; padding: 0 20px; gap: 40px; text-align: center; }
       .hero-text h1 { font-size: 40px; }
       .hero-actions { justify-content: center; }
@@ -27,10 +68,20 @@
 <body>
   <div class="header">
     <div class="logo"><img src="assets/logo.png" alt="晴天支付"><div class="logo-text"><h1>晴天支付</h1></div></div>
-    <div class="nav-links" id="navLinks"><a href="index.html" class="active">首页</a><a href="docs.html">开发者文档</a><a href="merchant.html">商户中心</a><a href="support.html">帮助支持</a></div>
+    
+    <div class="nav-links" id="navLinks">
+      <a href="index.html" class="active">首页</a>
+      <a href="docs.html">开发者文档</a>
+      <a href="merchant.html">商户中心</a>
+      <a href="support.html">帮助支持</a>
+    </div>
+    
     <a href="login.html" class="btn-header">商户入驻</a>
+    
+    <!-- 点击后切换类名 -->
     <div class="menu-toggle" onclick="document.getElementById('navLinks').classList.toggle('mobile-show')">☰</div>
   </div>
+
   <main>
     <div class="hero">
       <div class="hero-text">
