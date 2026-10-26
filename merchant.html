@@ -2,443 +2,223 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>商户控制台 - 晴天支付</title>
   <link rel="icon" href="assets/favicon.png">
   <link rel="stylesheet" href="assets/style.css">
   <style>
-    body { background: #f4f6f8; }
-    .admin-layout { display: flex; min-height: 100vh; }
-    
-    /* 左侧菜单 */
-    .admin-sidebar { width: 240px; background: #fff; border-right: 1px solid var(--border-color); padding: 24px 16px; flex-shrink: 0; }
-    .admin-menu-title { font-size: 12px; color: #999; margin: 16px 12px 8px; letter-spacing: 1px; }
-    .admin-menu-item { padding: 12px 16px; border-radius: 8px; font-size: 14px; color: var(--text-main); cursor: pointer; transition: all 0.2s; margin-bottom: 4px; }
-    .admin-menu-item:hover { background: #f8fafc; }
-    .admin-menu-item.active { background: var(--primary-light); color: var(--primary); font-weight: 600; }
-    .sub-menu { padding-left: 16px; margin-top: 4px; }
-    .sub-item { padding: 10px 16px; font-size: 13px; color: var(--text-muted); cursor: pointer; border-radius: 8px; margin-bottom: 2px; }
-    .sub-item.active { color: var(--primary); background: #f0f7ff; font-weight: 500; }
-    
-    /* 右侧主内容 */
-    .admin-main { flex: 1; padding: 32px 40px; overflow-x: hidden; }
-    .page-title { font-size: 20px; font-weight: 700; margin-bottom: 24px; color: #111; display: flex; justify-content: space-between; align-items: flex-end; }
-    .page-subtitle { font-size: 14px; color: #666; font-weight: normal; margin-left: 10px; }
-    
-    /* 区块卡片 */
-    .info-card { background: #fff; border-radius: 12px; padding: 32px; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); margin-bottom: 24px; }
-    .section-title { font-size: 16px; font-weight: 700; color: #111; margin-bottom: 24px; display: flex; align-items: center; gap: 8px; }
-    .section-title::before { content: ''; display: block; width: 4px; height: 16px; background: var(--primary); border-radius: 2px; }
+    /* ======= 基础重置 ======= */
+    body { background: #f4f6f8; font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif; margin: 0; }
+    * { box-sizing: border-box; }
 
-    /* 数据看板 */
-    .metrics-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
-    .metric-card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); }
-    .metric-title { font-size: 13px; color: var(--text-muted); margin-bottom: 8px; font-weight: 500; }
-    .metric-value { font-size: 24px; font-weight: 700; color: #111; }
-    .metric-value span { font-size: 14px; font-weight: 500; color: var(--text-muted); }
-
-    /* 表单项 */
-    .info-row { margin-bottom: 24px; }
-    .info-label { font-size: 14px; color: var(--text-muted); margin-bottom: 8px; display: block; }
-    .info-value-box { display: flex; align-items: center; background: #f8fafc; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px 16px; gap: 12px; }
-    .info-value-box input { border: none; background: transparent; padding: 0; font-size: 15px; color: #111; width: 100%; outline: none; box-shadow: none; }
-    .copy-btn { background: none; border: none; cursor: pointer; font-size: 18px; color: #999; padding: 4px; border-radius: 4px; transition: all 0.2s; }
-    .copy-btn:hover { color: var(--primary); background: var(--primary-light); }
-
-    .key-box { background: #f8fafc; border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; position: relative; }
-    .key-content { font-family: ui-monospace, monospace; font-size: 13px; color: #334155; word-break: break-all; line-height: 1.6; }
-    .key-box .copy-btn { position: absolute; top: 12px; right: 12px; background: #fff; border: 1px solid #e2e8f0; padding: 4px 8px; border-radius: 4px; font-size: 13px; }
-
-    /* 筛选区 */
-    .filter-row { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; align-items: flex-end; }
-    .filter-item { flex: 1; min-width: 150px; }
-    .filter-item input, .filter-item select { width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 14px; outline: none; background: #f8fafc; }
-    
-    /* 表格容器 */
-    .table-container { overflow-x: auto; border: 1px solid var(--border-color); border-radius: 8px; }
-    table { width: 100%; border-collapse: collapse; min-width: 1200px; text-align: left; font-size: 13px; }
-    th { background: #f8fafc; padding: 14px 16px; font-weight: 600; color: #475569; border-bottom: 1px solid var(--border-color); white-space: nowrap; }
-    td { padding: 14px 16px; border-bottom: 1px solid var(--border-color); color: #1e293b; }
-    tr:last-child td { border-bottom: none; }
-    tr:hover { background: #f8fafc; }
-    
-    /* 状态徽章 */
-    .status-badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; }
-    .status-unpaid { background: #fef2f2; color: #ef4444; }
-    .status-paid { background: #ecfdf5; color: #10b981; }
-    
-    /* 空状态 */
-    .empty-state { padding: 60px 20px; text-align: center; color: #94a3b8; font-size: 14px; }
-
-    /* 按钮组 */
-    .action-row { display: flex; gap: 12px; margin-top: 24px; }
-    .btn-text { background: none; border: none; color: var(--primary); cursor: pointer; font-size: 13px; padding: 0; }
-    
-    /* 自定义 Radio 卡片 */
-    .radio-group { display: flex; gap: 12px; margin-bottom: 16px; }
-    .radio-card { flex: 1; border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; text-align: center; cursor: pointer; transition: all 0.2s; font-size: 14px; font-weight: 500; color: var(--text-main); }
-    .radio-card.active { border-color: var(--primary); background: var(--primary-light); color: var(--primary); }
-    
-    .btn-disabled { background: #e2e8f0 !important; color: #94a3b8 !important; cursor: not-allowed !important; box-shadow: none !important; border-color: transparent !important; }
-    
-    .rule-text { font-size: 12px; color: #ef4444; margin-top: 8px; }
-    .tip-text { font-size: 12px; color: var(--text-muted); margin-top: 8px; }
-
-    /* 移动端 */
-    .mobile-topbar { display: none; }
-    @media (max-width: 768px) {
-      .admin-layout { flex-direction: column; }
-      .admin-sidebar { display: none; }
-      .admin-main { padding: 20px 16px; }
-      .mobile-topbar { display: flex; align-items: center; justify-content: space-between; padding: 16px; background: #fff; border-bottom: 1px solid var(--border-color); margin: -20px -16px 20px -16px; }
-      .info-card { padding: 20px; }
-      .action-row { flex-direction: column; }
-      .action-row button { width: 100%; }
-      .filter-row { flex-direction: column; gap: 12px; align-items: stretch; }
-      .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+    /* ======= 移动端顶部导航条 ======= */
+    .mobile-topbar {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      height: 60px;
+      background: #fff;
+      padding: 0 16px;
+      border-bottom: 1px solid #eee;
+      position: sticky; top: 0; z-index: 100;
     }
-    
-    .hidden { display: none !important; }
+    .mobile-topbar .left { display: flex; align-items: center; gap: 12px; font-weight: 600; font-size: 16px; }
+    .mobile-topbar .menu-btn { font-size: 24px; color: #111; cursor: pointer; }
+    .mobile-topbar .avatar { width: 32px; height: 32px; border-radius: 50%; background: #eef3ff; display: flex; align-items: center; justify-content: center; color: #0a66ff; }
+
+    /* ======= 移动端抽屉遮罩 ======= */
+    .mobile-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0, 0, 0, 0.45);
+      backdrop-filter: blur(2px); /* 毛玻璃模糊效果 */
+      z-index: 1000;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .mobile-overlay.show { display: block; opacity: 1; }
+
+    /* ======= 移动端抽屉主体 ======= */
+    .mobile-drawer {
+      position: fixed; top: 0; bottom: 0; left: -100%;
+      width: 80vw; max-width: 320px;
+      background: #fff;
+      z-index: 1001;
+      display: flex; flex-direction: column;
+      transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      border-radius: 0 16px 16px 0;
+      box-shadow: 4px 0 24px rgba(0,0,0,0.1);
+    }
+    .mobile-drawer.open { left: 0; }
+
+    /* 抽屉头部 */
+    .drawer-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 20px;
+    }
+    .drawer-logo { display: flex; align-items: center; gap: 12px; }
+    .drawer-logo img { width: 44px; height: 44px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,102,255,0.2); }
+    .drawer-title h2 { margin: 0; font-size: 18px; color: #111; }
+    .drawer-title p { margin: 2px 0 0 0; font-size: 12px; color: #888; }
+    .drawer-close { font-size: 20px; color: #999; cursor: pointer; padding: 8px; }
+
+    /* 抽屉滚动区 */
+    .drawer-body { flex: 1; overflow-y: auto; padding: 0 12px 20px; }
+
+    /* 菜单分组标题 */
+    .drawer-group-title {
+      font-size: 12px; color: #999; margin: 16px 12px 8px; letter-spacing: 1px;
+    }
+
+    /* 主菜单项 */
+    .drawer-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px; margin-bottom: 4px;
+      border-radius: 12px; cursor: pointer;
+      font-size: 15px; color: #333;
+    }
+    .drawer-item.active { background: #f0f7ff; color: #0a66ff; font-weight: 600; }
+    .drawer-item .icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+    .drawer-item .icon svg { width: 18px; height: 18px; }
+    .drawer-item.active .icon { background: #0a66ff; color: #fff; }
+    .drawer-item.active .icon svg { stroke: #fff; }
+    .drawer-item .icon-blue { background: #eef3ff; color: #0a66ff; }
+    .drawer-item .icon-purple { background: #f4ebff; color: #9333ea; }
+    .drawer-item .icon-green { background: #e6f7f0; color: #059669; }
+    .drawer-item .icon-gray { background: #f3f4f6; color: #4b5563; }
+    .drawer-item .arrow { margin-left: auto; color: #0a66ff; transform: rotate(90deg); }
+
+    /* 子菜单 */
+    .drawer-sub-menu {
+      margin-left: 28px; padding-left: 16px;
+      border-left: 1px solid #e5e7eb;
+      margin-bottom: 12px;
+    }
+    .drawer-sub-item {
+      padding: 10px 0; font-size: 14px; color: #666; cursor: pointer;
+    }
+    .drawer-sub-item.active { color: #0a66ff; font-weight: 500; }
+
+    /* ======= 桌面端侧边栏 (保留原逻辑) ======= */
+    .desktop-layout { display: none; }
+    @media (min-width: 769px) {
+      .mobile-topbar, .mobile-drawer, .mobile-overlay { display: none !important; }
+      .desktop-layout { display: flex; height: 100vh; }
+      .desktop-sidebar { width: 240px; background: #fff; border-right: 1px solid #eee; padding: 20px; }
+      .desktop-main { flex: 1; padding: 30px; overflow-y: auto; background: #f4f6f8; }
+    }
+
+    /* 主要内容区样式 (简化展示，通用) */
+    .main-content-page { max-width: 800px; margin: 0 auto; padding-bottom: 40px; }
+    .card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); margin-bottom: 16px; }
+    .page-title { font-size: 20px; font-weight: 700; margin-bottom: 20px; }
   </style>
 </head>
 <body>
 
-  <div class="admin-layout">
-    <!-- 侧边栏 -->
-    <div class="admin-sidebar">
-      <div style="font-weight: 700; font-size: 18px; padding: 0 12px 20px; border-bottom: 1px solid var(--border-color);">商户工作台</div>
-      
-      <div class="admin-menu-title">个人资料</div>
-      <div class="admin-menu-item">用户中心</div>
-      <div class="admin-menu-item" onclick="document.getElementById('submenu').classList.toggle('hidden')">个人资料 ▾</div>
-      <div class="sub-menu" id="submenu">
-        <div class="sub-item" id="menu-api" onclick="switchPage('api')">API信息</div>
-        <div class="sub-item" id="menu-profile" onclick="switchPage('profile')">修改资料</div>
-      </div>
+  <!-- ================= 移动端 ================= -->
+  <div class="mobile-topbar">
+    <div class="left">
+      <div class="menu-btn" onclick="toggleDrawer()">☰</div>
+      <span>个人资料</span>
+    </div>
+    <div class="avatar">👤</div>
+  </div>
 
-      <div class="admin-menu-title">交易与资金</div>
-      <div class="admin-menu-item" id="menu-collection" onclick="switchPage('collection')">聚合收款</div>
-      <div class="admin-menu-item" id="menu-orders" onclick="switchPage('orders')">订单记录</div>
-      <div class="admin-menu-item" id="menu-withdraw" onclick="switchPage('withdraw')">提现记录</div>
-      <div class="admin-menu-item" id="menu-ledger" onclick="switchPage('ledger')">资金明细</div>
-      
-      <div class="admin-menu-title">其他</div>
-      <div class="admin-menu-item" onclick="window.location.href='docs.html'">开发文档</div>
-      <div class="admin-menu-item" style="color: #ef4444;" onclick="logout()">退出登录</div>
+  <div class="mobile-overlay" id="mobileOverlay" onclick="toggleDrawer()"></div>
+
+  <div class="mobile-drawer" id="mobileDrawer">
+    <div class="drawer-header">
+      <div class="drawer-logo">
+        <img src="assets/logo.png" alt="晴天支付">
+        <div class="drawer-title">
+          <h2>晴天支付</h2>
+          <p>商户服务平台</p>
+        </div>
+      </div>
+      <div class="drawer-close" onclick="toggleDrawer()">✕</div>
     </div>
 
-    <!-- 主内容 -->
-    <div class="admin-main">
-      <div class="mobile-topbar">
-        <div style="font-weight: 600; font-size: 18px;" id="mobile-title">控制台</div>
-        <div style="color: #ef4444; font-size: 14px;" onclick="logout()">退出</div>
+    <div class="drawer-body">
+      <div class="drawer-group-title">商户工作台</div>
+      
+      <div class="drawer-item">
+        <div class="icon icon-blue"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg></div>
+        用户中心
       </div>
 
-      <!-- ================= 聚合收款页 ================= -->
-      <div id="page-collection" class="hidden">
-        <div class="page-title">聚合收款</div>
-        <div class="info-card" style="max-width: 600px;">
-          <div class="section-title">你的聚合收款链接</div>
-          <p style="color: var(--text-muted); margin-bottom: 24px; font-size: 14px; line-height: 1.6;">
-            你可以将收款链接发到别人，点击后可以直接输入金额付款。
-          </p>
-          
-          <div class="info-value-box" style="margin-bottom: 24px; padding: 16px;">
-            <input type="text" value="https://pay.lynli.me/collect?mch=5466" readonly id="collection-url" style="font-size: 16px; font-weight: 500;">
-            <button class="copy-btn" style="font-size: 20px;" onclick="copyText('collection-url')">⧉</button>
-          </div>
-          
-          <button class="btn-primary" style="width: 100%; padding: 14px; font-size: 16px;" onclick="copyText('collection-url')">点击复制</button>
-        </div>
+      <div class="drawer-item active">
+        <div class="icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg></div>
+        个人资料
+        <svg class="arrow" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
       </div>
 
-      <!-- ================= API 信息页 ================= -->
-      <div id="page-api" class="hidden">
-        <div class="page-title">API 信息</div>
-        <div class="info-card">
-          <div class="info-row">
-            <label class="info-label">接口地址</label>
-            <div class="info-value-box"><input type="text" value="https://api.lynli.me/" readonly id="api-url"><button class="copy-btn" onclick="copyText('api-url')">⧉</button></div>
-          </div>
-          <div class="info-row" style="margin-bottom: 0;">
-            <label class="info-label">商户ID</label>
-            <div class="info-value-box"><input type="text" value="5466" readonly id="mch-id"><button class="copy-btn" onclick="copyText('mch-id')">⧉</button></div>
-          </div>
-        </div>
-        <div class="info-card">
-          <div class="section-title">V1接口（MD5签名方式）</div>
-          <div class="info-row">
-            <label class="info-label">商户 MD5 密钥</label>
-            <div class="info-value-box"><input type="text" value="d0498216697be28ddb79802a9f6b4bae25f8bd4c14ab2c6f" readonly id="md5-key"><button class="copy-btn" onclick="copyText('md5-key')">⧉</button></div>
-          </div>
-          <div class="action-row">
-            <a href="docs.html" class="btn-outline" style="text-decoration: none; text-align: center;">查看V1开发文档</a>
-            <button class="btn-primary" style="background: #fff0f0; color: #d9534f; border: 1px solid #f5c6cb; box-shadow: none;" onclick="toast('重置功能需联系客服')">重置商户MD5密钥</button>
-          </div>
-        </div>
-        <div class="info-card">
-          <div class="section-title">V2接口（RSA签名方式）</div>
-          <div class="info-row">
-            <label class="info-label">平台公钥</label>
-            <div class="key-box">
-              <div class="key-content" id="rsa-pub">MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA7lfFs/7lC5LybXHjpOS//zD8jDX1kIXzjRN6UpQgHO+elDo+qwtCoiYFOAEWRnp1I2vv4lt9mfVPZB6mcHxEcg5F288UysMSEDIaOtBS+EyhbVbCg8ug9qZNOvKSqpyz1sPv8Yly06i3RQj6+RSuz2qY9zcF3GbKqCBrE9ym/S2bPlpfIKNC3yyguH+5qUl3SagF+ndJobm/ZhmPd9Z/4tfB8cA0HdNZXVmt2yKthCXaTSmg7OpbExlXHsQeccOB7f4UlC45GGy47j2/vFyk1X0RZ1vdvY4EZ8FtUrvp1xdSAnyGbt+YU4WkXiZ5DZx2juf+9W9fjs4wGpkxRjMAmwIDAQAB</div>
-              <button class="copy-btn" onclick="copyText('rsa-pub')">复制</button>
-            </div>
-          </div>
-          <div class="info-row">
-            <label class="info-label">商户私钥</label>
-            <div class="key-box">
-              <div class="key-content" id="rsa-pri">MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC5vFjpKFya6Ucskl/RUr368CUiFjHab0eW/uZcmIeBuqYHB4PidcwwGs3CgMUdSTLwi7E4yZq8y99/Bg6++vWGdOshelsML1hqMKypZfvbyn6HB9Kx/G9gzDUV6gMVDEOnzEgERZbpKb7Pp88SBMEzhT/Y4JXg27j4MvSsU0Rqte4aq++d/nydI0hqluFjJ9/Zpl52O0QBLDsJi5gFLffd0R9pLRRasPGysdQDP9Ovt3RDN+YZ70ain8SnwTmxJ+pMty9EnTsVTe+RrfgimpXcUZ5gKfbVREjxC2Hz7CGc+bFt/1SnCyvq03PDiPi+Wc0R1HC5qzZj0TNjvUbW2csjAgMBAAECggEABhQgfbe+hasQWEErCXe8nfm94RA/gZdz0fbiIDv6UX40/2/lc03TLcUWfg+m0CQD1cXWdTYr5Ffm2BQ+wBIcO76ES8nOzma+lI9rtfYFpPjU5PJHcYdREJzIJTdhfCKhT5e0oYSywSPVdiXgzlQVC9j+LAPkZkvDONCSuTglpmCoCSYdiwYPwImAdThdCzhvYRJEMiZbViJRJE6eyzNgBN7pUcdnwdrxEFH4OT8sJYjEa0B2OOQlLRgxfhIRP/TnHzaKV4Zok1j9XwIFsfHRlI0BdD9E4FeWHrQU8P/wp+7xA9AH+VXLxjySmErdSy0/nZ1pYUkirbLsj3g+yF5H8QKBgQDrQVl2ap2vRSaOmUcSWFtpNmPBcI3cqL0VTqakklYW7bo9NIC23DAb/GUCMXNrsUBlZZ+Urb/oYfw5D3vtghzr95rbuemr2QAuCQcLtk3HbV8IU+LovPorB6Yqp0Vhyqjn7U/ocooDoF41XncJmon1gZgUdfstYgP2Q0QCggboqQKBgQDKHSToNm12VdOtXUX0DjGT/nHKk1w6xGHnFeZC0sH5PR50K0bsEzE+SFLLwvqFv6XzwE2CCnsDbkfPVs5YG3f+JOmuRaIhd2jDlNytpVPZmXza0AuJbT5DidmQ7QsH7XdyPKpOgYtHx08Iggl9rGaFf+YtSJMlaka/s3qkOrt46wKBgQDUAyLS2yacbB9hZ7VrTQGkggXIsNzIPbGZ4DXCHrdDFp8+xXAyW6Fnt0B4h4RTS3yTZNA6N5O5o4ShD9lJpHbYGV8QIi36VygYVL5qybKyxVhdsuvNf3GdEdmomvKmPPOXgIEBJShIOGBujGGO4Bzwigg6eFETB0A20UwbTn9XcQKBgQCi5SJd1aAbg8j7LPW4YcgrkyN7NZFb+/M8IDZZHSwhCNWGo2qh0kYaAIhamWb4bSH/droBWRkUBsnxnfDoqhrnxjBguNaXSnoxR8UkXt9ZvY8XfB4QQO+x12R2ndYKKaXfeG16oIX07/oOzV+A3nYymoaVcKzHtwQWdT0fKAb4yQKBgDweGKMAWiFfZbzcg9a8iNhMbuxeA/kJhtdVrdPHuUyB9fxMhdegMI00xk+vVp2Y57BOolL4J3AxSDmTnvO5OpB1iFNvW3/w0/EHFYRbskxeeKPvz4i6oGq2n6Tlr5grfzPm523HjKocIPAiod8+2VtzsJnyhA0ZDk9BFlkDhjAb</div>
-              <button class="copy-btn" onclick="copyText('rsa-pri')">复制</button>
-            </div>
-          </div>
-          <div class="action-row">
-            <a href="docs.html" class="btn-outline" style="text-decoration: none; text-align: center;">查看V2开发文档</a>
-            <button class="btn-primary" style="background: #fff0f0; color: #d9534f; border: 1px solid #f5c6cb; box-shadow: none;" onclick="toast('重置功能需联系客服')">重置商户RSA密钥对</button>
-          </div>
-        </div>
+      <div class="drawer-sub-menu">
+        <div class="drawer-sub-item active">API信息</div>
+        <div class="drawer-sub-item">修改资料</div>
       </div>
 
-      <!-- ================= 修改资料页 ================= -->
-      <div id="page-profile" class="hidden">
-        <div class="page-title">个人资料</div>
-        <div class="info-card">
-          <div class="section-title">收款账号设置</div>
-          <div class="info-label" style="margin-bottom: 12px;">结算方式</div>
-          <div class="radio-group">
-            <div class="radio-card active" id="card-usdt" onclick="selectSettle('usdt')">USDT结算</div>
-            <div class="radio-card" id="card-bank" onclick="selectSettle('bank')">银行卡结算</div>
-          </div>
-          <div id="form-usdt">
-            <div class="info-row">
-              <label class="info-label">USDT地址</label>
-              <input type="text" placeholder="请输入您的 USDT 提款地址" style="width: 100%; padding: 14px 16px; border: 1px solid var(--border-color); border-radius: 8px; background: #f8fafc;">
-            </div>
-            <div class="info-row">
-              <label class="info-label">USDT网络</label>
-              <select style="width: 100%; padding: 14px 16px; border: 1px solid var(--border-color); border-radius: 8px; background: #f8fafc; font-size: 15px; outline: none;">
-                <option value="TRC20">TRC20 (Tron)</option>
-                <option value="ERC20">ERC20 (Ethereum)</option>
-                <option value="BEP20">BEP20 (BSC)</option>
-              </select>
-            </div>
-          </div>
-          <div id="form-bank" class="hidden">
-            <div class="info-row">
-              <label class="info-label">持卡人姓名</label>
-              <input type="text" placeholder="请输入真实姓名" style="width: 100%; padding: 14px 16px; border: 1px solid var(--border-color); border-radius: 8px; background: #f8fafc;">
-            </div>
-            <div class="info-row">
-              <label class="info-label">银行卡号</label>
-              <input type="text" placeholder="请输入银行卡号" style="width: 100%; padding: 14px 16px; border: 1px solid var(--border-color); border-radius: 8px; background: #f8fafc;">
-            </div>
-          </div>
-          <div class="action-row">
-            <button class="btn-primary" onclick="toast('保存接口需等待后端打通')">确定修改</button>
-          </div>
-        </div>
-        <div class="info-card">
-          <div class="section-title">支付密码</div>
-          <div style="display: flex; align-items: center; justify-content: space-between; background: #f8fafc; border: 1px solid var(--border-color); padding: 20px; border-radius: 8px;">
-            <div>
-              <div style="font-weight: 600; font-size: 15px; margin-bottom: 4px;">未设置</div>
-              <div style="font-size: 13px; color: var(--text-muted);">请先绑定 USDT 提款地址，再设置支付密码。</div>
-            </div>
-            <button class="btn-primary btn-disabled" disabled>请先绑定 USDT 提款地址</button>
-          </div>
-        </div>
+      <div class="drawer-group-title">交易与资金</div>
+      
+      <div class="drawer-item">
+        <div class="icon icon-purple"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg></div>
+        订单记录
       </div>
 
-      <!-- ================= 订单记录页 ================= -->
-      <div id="page-orders" class="hidden">
-        <div class="page-title">订单记录 <span class="page-subtitle">共 91 单</span></div>
-        <div class="info-card">
-          <div class="filter-row">
-            <div class="filter-item"><input type="text" placeholder="系统订单号"></div>
-            <div class="filter-item"><input type="text" placeholder="商户订单号"></div>
-            <div class="filter-item"><select><option>所有支付方式</option><option>支付宝</option></select></div>
-            <div class="filter-item"><select><option>全部状态</option><option>未支付</option><option>已支付</option></select></div>
-          </div>
-          <div style="display: flex; gap: 12px;">
-            <button class="btn-primary" style="padding: 10px 24px;">搜索</button>
-            <button class="btn-outline" style="padding: 10px 24px;">重置</button>
-          </div>
-        </div>
-        <div class="info-card" style="padding: 0; overflow: hidden;">
-          <div class="table-container">
-            <table>
-              <thead>
-                <tr><th>系统订单号</th><th>商户订单号</th><th>商品名称</th><th>商品金额</th><th>扣费后金额</th><th>支付方式</th><th>创建时间</th><th>支付状态</th><th>操作</th></tr>
-              </thead>
-              <tbody id="orders-tbody"></tbody>
-            </table>
-          </div>
-        </div>
+      <div class="drawer-item">
+        <div class="icon icon-purple"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg></div>
+        提现记录
       </div>
 
-      <!-- ================= 提现记录页 ================= -->
-      <div id="page-withdraw" class="hidden">
-        <div class="page-title">提现记录</div>
-        <div class="metrics-grid">
-          <div class="metric-card"><div class="metric-title">可提现 USDT</div><div class="metric-value">0.000000 <span>USDT</span></div></div>
-          <div class="metric-card"><div class="metric-title">待提现 USDT</div><div class="metric-value">0.000000 <span>USDT</span></div></div>
-          <div class="metric-card"><div class="metric-title">审核中 USDT</div><div class="metric-value">0.000000 <span>USDT</span></div></div>
-          <div class="metric-card"><div class="metric-title">已提现 USDT</div><div class="metric-value">0.000000 <span>USDT</span></div></div>
-        </div>
-        <div class="info-card">
-          <div class="section-title">申请提现</div>
-          <div class="radio-group" style="max-width: 400px;">
-            <div class="radio-card active" id="withdraw-all" onclick="selectWithdrawType('all')">全部提现</div>
-            <div class="radio-card" id="withdraw-custom" onclick="selectWithdrawType('custom')">自定义金额</div>
-          </div>
-          <div class="info-row">
-            <label class="info-label">提现金额 (USDT) <span style="color:#999; font-weight:normal;">最多 0.000000</span></label>
-            <input type="number" id="withdraw-amount" value="0.000000" readonly style="width: 100%; max-width: 400px; padding: 14px 16px; border: 1px solid var(--border-color); border-radius: 8px; background: #f8fafc;">
-          </div>
-          <div class="info-row">
-            <label class="info-label">USDT地址</label>
-            <input type="text" placeholder="未设置，请先到个人资料填写" readonly style="width: 100%; max-width: 400px; padding: 14px 16px; border: 1px solid #f5c6cb; border-radius: 8px; background: #fff0f0; color: #d9534f;">
-          </div>
-          <div class="info-row">
-            <label class="info-label">网络</label>
-            <input type="text" value="USDT-TRC20" readonly style="width: 100%; max-width: 400px; padding: 14px 16px; border: 1px solid var(--border-color); border-radius: 8px; background: #f8fafc;">
-          </div>
-          <div class="tip-text">提现手续费：100 USDT 起免手续费，低于 100 USDT 收 1 USDT</div>
-          <div class="rule-text">规则：审核通过后，于每日 12:00-23:00 处理。</div>
-          <div class="action-row" style="max-width: 400px;"><button class="btn-primary" style="width: 100%;" onclick="toast('请先绑定USDT地址')">确认提现</button></div>
-        </div>
-        <div class="page-title" style="font-size: 16px; margin-top: 32px;">提现记录</div>
-        <div class="info-card" style="padding: 0; overflow: hidden;">
-          <div style="padding: 20px; border-bottom: 1px solid var(--border-color); display: flex; gap: 12px;">
-            <select style="padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 6px; outline: none;"><option>全部状态</option></select>
-            <button class="btn-primary" style="padding: 8px 16px; font-size: 13px;">搜索</button>
-            <button class="btn-outline" style="padding: 8px 16px; font-size: 13px;">重置</button>
-          </div>
-          <div class="table-container" style="border: none; border-radius: 0;">
-            <table>
-              <thead><tr><th>提现方式</th><th>USDT地址</th><th>提现金额</th><th>网络</th><th>状态/留言</th><th>交易哈希/TXID</th><th>申请时间</th></tr></thead>
-              <tbody><tr><td colspan="7"><div class="empty-state">没有找到匹配的记录</div></td></tr></tbody>
-            </table>
-          </div>
-        </div>
+      <div class="drawer-item">
+        <div class="icon icon-purple"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg></div>
+        资金明细
       </div>
 
-      <!-- ================= 资金明细页 ================= -->
-      <div id="page-ledger" class="hidden">
-        <div class="page-title">资金明细</div>
-        <div class="info-card">
-          <div class="filter-row">
-            <div class="filter-item" style="max-width: 200px;">
-              <select style="width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 14px; outline: none; background: #f8fafc;">
-                <option value="">操作类型</option><option value="income">收入</option><option value="withdraw">提现</option><option value="refund">退款</option>
-              </select>
-            </div>
-            <div style="display: flex; gap: 12px;">
-              <button class="btn-primary" style="padding: 10px 24px;">搜索</button>
-              <button class="btn-outline" style="padding: 10px 24px;">重置</button>
-            </div>
-          </div>
-        </div>
-        <div class="info-card" style="padding: 0; overflow: hidden;">
-          <div class="table-container">
-            <table>
-              <thead><tr><th>操作类型</th><th>变更金额</th><th>变更前金额</th><th>变更后金额</th><th>资金状态</th><th>可提现时间</th><th>时间</th><th>关联订单号</th></tr></thead>
-              <tbody><tr><td colspan="8"><div class="empty-state">没有找到匹配的记录</div></td></tr></tbody>
-            </table>
-          </div>
-        </div>
+      <div class="drawer-group-title">其他</div>
+
+      <div class="drawer-item">
+        <div class="icon icon-blue"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg></div>
+        聚合收款
+      </div>
+
+      <div class="drawer-item">
+        <div class="icon icon-blue"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg></div>
+        开发文档
+      </div>
+
+      <div class="drawer-item">
+        <div class="icon icon-blue"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"></path></svg></div>
+        联系客服
       </div>
 
     </div>
   </div>
 
+  <!-- ================= 主内容区 ================= -->
+  <div class="main-content-page" style="padding: 16px;">
+    <div class="card">
+      <div class="page-title">API 信息</div>
+      <div style="color:#666; font-size:14px; margin-bottom: 10px;">接口地址</div>
+      <input type="text" value="https://api.lynli.me/" readonly style="width:100%; padding:12px; border:1px solid #eee; border-radius:8px; background:#fafafa;">
+    </div>
+  </div>
+
   <script src="assets/api.js"></script>
   <script>
-    if (!getToken()) window.location.href = 'login.html';
-
-    const mockOrders = [
-      { sys: '2026102701154687755', mch: 'T1793034946', name: 'test', money: '0.10', real: '0.10', type: '支付宝', time: '10-27 01:15:46', status: 'unpaid' },
-      { sys: '2026102701110988458', mch: 'T1793034669', name: 'test', money: '0.10', real: '0.10', type: '支付宝', time: '10-27 01:11:09', status: 'unpaid' }
-    ];
-
-    function renderOrders() {
-      const tbody = document.getElementById('orders-tbody');
-      tbody.innerHTML = mockOrders.map(order => `
-        <tr>
-          <td style="color: #64748b; font-family: monospace;">${order.sys}</td>
-          <td>${order.mch}</td>
-          <td>${order.name}</td>
-          <td>￥${order.money}</td>
-          <td>￥${order.real}</td>
-          <td><span style="display:inline-block; width:20px; height:20px; background:#1677ff; color:#fff; border-radius:4px; text-align:center; line-height:20px; font-size:12px; margin-right:4px;">支</span> ${order.type}</td>
-          <td style="color: #64748b;">${order.time}</td>
-          <td><span class="status-badge status-${order.status}">${order.status === 'unpaid' ? '未支付' : '已支付'}</span></td>
-          <td><button class="btn-text">明细</button></td>
-        </tr>
-      `).join('');
-    }
-
-    function switchPage(page) {
-      ['collection', 'api', 'profile', 'orders', 'withdraw', 'ledger'].forEach(p => {
-        const el = document.getElementById('page-' + p);
-        if (el) el.classList.add('hidden');
-        const menu = document.getElementById('menu-' + p);
-        if (menu) menu.classList.remove('active');
-      });
-
-      const targetPage = document.getElementById('page-' + page);
-      if (targetPage) targetPage.classList.remove('hidden');
-      const targetMenu = document.getElementById('menu-' + page);
-      if (targetMenu) targetMenu.classList.add('active');
+    // 移动端抽屉开关逻辑
+    function toggleDrawer() {
+      const drawer = document.getElementById('mobileDrawer');
+      const overlay = document.getElementById('mobileOverlay');
       
-      const titles = { 'collection': '聚合收款', 'api': 'API信息', 'profile': '修改资料', 'orders': '订单记录', 'withdraw': '提现记录', 'ledger': '资金明细' };
-      document.getElementById('mobile-title').innerText = titles[page] || '控制台';
-    }
-
-    function selectWithdrawType(type) {
-      const amountInput = document.getElementById('withdraw-amount');
-      if (type === 'all') {
-        document.getElementById('withdraw-all').classList.add('active');
-        document.getElementById('withdraw-custom').classList.remove('active');
-        amountInput.value = '0.000000';
-        amountInput.readOnly = true;
+      if (drawer.classList.contains('open')) {
+        drawer.classList.remove('open');
+        overlay.classList.remove('show');
       } else {
-        document.getElementById('withdraw-all').classList.remove('active');
-        document.getElementById('withdraw-custom').classList.add('active');
-        amountInput.value = '';
-        amountInput.readOnly = false;
-        amountInput.focus();
+        drawer.classList.add('open');
+        overlay.classList.add('show');
       }
     }
-
-    function selectSettle(type) {
-      if (type === 'usdt') {
-        document.getElementById('card-usdt').classList.add('active');
-        document.getElementById('card-bank').classList.remove('active');
-        document.getElementById('form-usdt').classList.remove('hidden');
-        document.getElementById('form-bank').classList.add('hidden');
-      } else {
-        document.getElementById('card-usdt').classList.remove('active');
-        document.getElementById('card-bank').classList.add('active');
-        document.getElementById('form-usdt').classList.add('hidden');
-        document.getElementById('form-bank').classList.remove('hidden');
-      }
-    }
-
-    function copyText(elementId) {
-      const el = document.getElementById(elementId);
-      const text = el.value !== undefined ? el.value : el.innerText;
-      navigator.clipboard.writeText(text).then(() => {
-        toast('已复制到剪贴板');
-      }).catch(err => {
-        toast('复制失败，请长按选择', true);
-      });
-    }
-
-    window.onload = () => {
-      renderOrders();
-      switchPage('collection'); // 默认打开聚合收款页
-    };
   </script>
 </body>
 </html>
