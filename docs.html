@@ -14,24 +14,53 @@
   </div>
   <main style="max-width: 900px; margin: 40px auto; padding: 0 24px;">
     <div class="card">
-      <h2 style="margin-bottom: 24px; font-size: 24px;">V1 支付接口文档</h2>
-      <p style="color: var(--text-muted); margin-bottom: 20px;">通过 HTTP POST 请求发起支付，采用标准 MD5 签名机制。</p>
-      
-      <h3 style="margin: 30px 0 16px; font-size: 18px;">发起支付</h3>
-      <p><strong>接口地址：</strong> <code>https://api.lynli.me/mapi.php</code></p>
+      <h2 style="margin-bottom: 24px; font-size: 24px;">支付网关接口文档（V1）</h2>
+      <p style="color: var(--text-muted); margin-bottom: 20px;">标准 HTTP + MD5 签名机制。所有接口基础地址：<code>https://api.lynli.me/api/v1</code></p>
+
+      <h3 style="margin: 30px 0 16px; font-size: 18px;">① 发起支付（下单）</h3>
+      <p><strong>接口地址：</strong> <code>POST /api/v1/payplat/gateway/submit</code>（JSON）</p>
       <p style="margin-top: 12px;"><strong>请求参数：</strong></p>
       <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; margin-top: 12px;">
         <ul style="list-style: none; line-height: 2;">
-          <li><code>pid</code> - 商户ID (必填)</li>
-          <li><code>type</code> - 支付类型，固定为 <code>alipay</code> (必填)</li>
-          <li><code>out_trade_no</code> - 商户订单号 (必填)</li>
-          <li><code>money</code> - 金额 (必填)</li>
-          <li><code>sign</code> - MD5签名 (必填)</li>
+          <li><code>app_id</code> - 商户标识（必填，商户中心获取）</li>
+          <li><code>out_trade_no</code> - 商户侧唯一订单号（必填）</li>
+          <li><code>amount</code> - 金额（元），两位小数（必填）</li>
+          <li><code>name</code> - 商品名称（选填，收银台展示）</li>
+          <li><code>method</code> - 支付方式：<code>alipay</code>（默认）/ <code>usdt</code></li>
+          <li><code>notify_url</code> - 异步通知地址（选填）</li>
+          <li><code>timestamp</code> - 秒级时间戳（必填）</li>
+          <li><code>sign</code> - MD5 签名（必填）</li>
         </ul>
       </div>
+      <p style="margin-top: 12px;"><strong>签名规则：</strong>剔除 <code>sign</code> 与空值参数，其余按参数名 ASCII 升序拼成 <code>k1=v1&amp;k2=v2&amp;…</code>，末尾直接拼接 <code>app_secret</code>（无 &amp;），整体 MD5，32 位小写。</p>
+      <div style="background: #0f172a; color: #cfe0ff; border-radius: 8px; padding: 16px; margin-top: 12px; font-family: monospace; font-size: 13px; line-height: 1.8; overflow-x: auto;">
+raw = "amount=100.00&amp;app_id=QTxxx&amp;name=订单&amp;out_trade_no=M1001&amp;timestamp=1735689600" + app_secret<br>sign = md5(raw)  // 32 位小写
+      </div>
+      <p style="margin-top: 12px;"><strong>返回：</strong><code>{ "code": 0, "trade_no": "PAY17xxxx", "amount": "100.00", "payurl": "https://…", "qrcode": "https://…" }</code></p>
+      <p style="margin-top: 8px;">拿到 <code>trade_no</code> 后引导用户打开收银台：<code>cashier.html?trade_no=PAY17xxxx</code></p>
 
-      <h3 style="margin: 30px 0 16px; font-size: 18px;">MD5 签名规则</h3>
-      <pre>sign = md5(按参数名ASCII码从小到大排序后的 a=b&c=d 格式 + 商户密钥)</pre>
+      <h3 style="margin: 30px 0 16px; font-size: 18px;">② 查单接口</h3>
+      <p><strong>接口地址：</strong> <code>GET /api/v1/payplat/gateway/query?app_id=&amp;trade_no=&amp;timestamp=&amp;sign=</code></p>
+      <p style="margin-top: 8px;">返回 <code>status</code>：<code>0</code> 待支付 · <code>2</code> 已支付已结算；<code>fee</code> 为平台抽成，<code>credit</code> 为商户入账。</p>
+
+      <h3 style="margin: 30px 0 16px; font-size: 18px;">③ 异步回调通知</h3>
+      <p>支付成功后，平台以 <strong>POST form-urlencoded</strong> 请求你下单传入的 <code>notify_url</code>：</p>
+      <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px 16px; margin-top: 8px; font-family: monospace; font-size: 13px;">
+out_trade_no=M1001&amp;trade_no=PAY17xxxx&amp;amount=100.00&amp;status=TRADE_SUCCESS&amp;timestamp=1735689660&amp;sign=…
+      </div>
+      <ul style="line-height: 2; color: var(--text-muted); margin-top: 12px;">
+        <li>签名规则与请求一致，请务必<strong>验签</strong>后处理业务；</li>
+        <li>收到通知请返回 HTTP 200；失败自动重试最多 3 次；</li>
+        <li>通知可能重复，请按订单状态做<strong>幂等</strong>处理。</li>
+      </ul>
+
+      <h3 style="margin: 30px 0 16px; font-size: 18px;">④ 费率与结算</h3>
+      <ul style="line-height: 2; color: var(--text-muted);">
+        <li>手续费 = 订单金额 × <strong>10%</strong>，支付到账即结算；</li>
+        <li>商户余额 = 累计入账（90%）− 已提现金额；</li>
+        <li>提现在商户中心「提现申请」发起，平台审核打款；被拒金额自动退回余额。</li>
+      </ul>
+      <p style="margin-top: 32px; text-align: right; color: var(--text-muted);">—— 晴天支付 · 开发者文档 · 署名：<strong style="color: var(--primary)">晴天</strong> ☀️</p>
     </div>
   </main>
   <script src="assets/api.js"></script>

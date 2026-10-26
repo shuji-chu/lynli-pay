@@ -42,14 +42,14 @@
 
     .hamburger { display: none; font-size: 24px; cursor: pointer; padding: 8px; color: var(--text-main); }
 
-    /* ================= 移动端丝滑抽屉 ================= */
-    .drawer-mask {
+    /* ================= 移动端丝滑抽屉（lyn- 命名空间，零污染） ================= */
+    .lyn-mask {
       display: none; position: fixed; inset: 0;
-      background: rgba(15, 23, 42, 0.3); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
-      z-index: 9998; opacity: 0; transition: opacity 0.4s ease;
+      background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+      z-index: 9998; opacity: 0; transition: opacity 0.4s cubic-bezier(0.32, 0.72, 0, 1);
     }
-    .drawer-mask.show { display: block; opacity: 1; }
-    .drawer {
+    .lyn-mask.show { display: block; opacity: 1; }
+    .lyn-drawer {
       position: fixed; top: 0; bottom: 0; right: 0;
       width: 85%; max-width: 320px; background: var(--surface); z-index: 9999;
       display: flex; flex-direction: column; border-radius: 24px 0 0 24px;
@@ -57,14 +57,23 @@
       transform: translateX(100%); will-change: transform;
       transition: transform 0.45s cubic-bezier(0.32, 0.72, 0, 1);
     }
-    .drawer.open { transform: translateX(0); }
-    .drawer-header { display: flex; align-items: center; justify-content: space-between; padding: 24px 20px; }
-    .drawer-close { width: 36px; height: 36px; border-radius: 50%; background: var(--bg); display: flex; align-items: center; justify-content: center; font-size: 18px; color: var(--text-muted); cursor: pointer; }
-    .drawer-logo-area { display: flex; align-items: center; gap: 12px; }
-    .drawer-logo-area img { width: 40px; height: 40px; border-radius: 10px; }
-    .drawer-body { flex: 1; overflow-y: auto; padding: 0 16px; }
-    .drawer-item { display: flex; align-items: center; padding: 16px; font-size: 16px; color: var(--text-main); border-bottom: 1px solid var(--bg); font-weight: 500; }
-    .drawer-item:active { background: var(--bg); }
+    .lyn-drawer.open { transform: translateX(0); }
+    .lyn-drawer-header { display: flex; align-items: center; justify-content: space-between; padding: 24px 20px 16px; }
+    .lyn-drawer-x { width: 36px; height: 36px; border-radius: 50%; background: var(--bg); display: flex; align-items: center; justify-content: center; font-size: 18px; color: var(--text-muted); cursor: pointer; border: none; font-family: inherit; }
+    .lyn-drawer-logo-area { display: flex; align-items: center; gap: 12px; }
+    .lyn-drawer-logo-area img { width: 40px; height: 40px; border-radius: 10px; }
+    .lyn-drawer-body { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 0 16px 24px; }
+    .lyn-group { font-size: 12px; color: #94a3b8; margin: 20px 8px 8px; font-weight: 600; letter-spacing: 1px; }
+    .lyn-item { display: flex; align-items: center; gap: 8px; padding: 8px; margin-bottom: 8px; font-size: 15px; color: #334155; font-weight: 500; border-radius: 14px; transition: background 0.2s; }
+    .lyn-item:active { background: var(--bg); }
+    .lyn-ic { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .lyn-ic svg { width: 20px; height: 20px; }
+    .lyn-ic-blue { background: #eff6ff; color: #2563eb; }
+    .lyn-ic-green { background: #ecfdf5; color: #059669; }
+    .lyn-ic-purple { background: #f5f3ff; color: #7c3aed; }
+    .lyn-ic-amber { background: #fffbeb; color: #d97706; }
+    .lyn-ic-orange { background: #fff7ed; color: #ea580c; }
+    body.lyn-locked { overflow: hidden; }
 
     /* ================= 首页 Hero 区域 ================= */
     .hero { max-width: 1200px; margin: 60px auto; padding: 0 24px; display: flex; flex-direction: column; align-items: center; text-align: center; }
@@ -126,28 +135,50 @@
       <a href="support.html">帮助支持</a>
       <a href="login.html" class="btn">商户入驻</a>
     </div>
-    <div class="hamburger" onclick="toggleDrawer(true)">☰</div>
+    <div class="hamburger" onclick="lynDrawerOpen()">☰</div>
   </div>
 
-  <!-- 抽屉遮罩与主体 -->
-  <div class="drawer-mask" id="drawerMask" onclick="toggleDrawer(false)"></div>
-  <div class="drawer" id="drawer">
-    <div class="drawer-header">
-      <div class="drawer-close" onclick="toggleDrawer(false)">✕</div>
-      <div class="drawer-logo-area">
-        <div style="text-align: right;">
+  <!-- 抽屉遮罩与主体（lyn- 命名空间） -->
+  <div class="lyn-mask" id="lynMask" onclick="lynDrawerClose()"></div>
+  <div class="lyn-drawer" id="lynDrawer">
+    <div class="lyn-drawer-header">
+      <div class="lyn-drawer-logo-area">
+        <img src="assets/logo.png" alt="晴天支付">
+        <div style="text-align: left;">
           <h2 style="font-size: 18px; margin: 0;">晴天支付</h2>
           <p style="font-size: 12px; color: #888; margin-top: 2px;">聚合支付平台</p>
         </div>
-        <img src="assets/logo.png" alt="晴天支付">
       </div>
+      <button class="lyn-drawer-x" onclick="lynDrawerClose()" aria-label="关闭">✕</button>
     </div>
-    <div class="drawer-body">
-      <a href="index.html" class="drawer-item">首页</a>
-      <a href="docs.html" class="drawer-item">开发者文档</a>
-      <a href="merchant.html" class="drawer-item">商户中心</a>
-      <a href="support.html" class="drawer-item">帮助支持</a>
-      <a href="login.html" class="drawer-item" style="color: var(--primary); border: none;">商户入驻 →</a>
+    <div class="lyn-drawer-body">
+      <div class="lyn-group">商户工作台</div>
+      <a href="merchant.html" class="lyn-item">
+        <span class="lyn-ic lyn-ic-blue"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg></span>
+        商户中心</a>
+      <a href="javascript:void(0)" class="lyn-item" onclick="lynDrawerClose();lynTestPay()">
+        <span class="lyn-ic lyn-ic-amber"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 2L4 14h6l-1 8 9-12h-6z"/></svg></span>
+        发起测试支付</a>
+      <div class="lyn-group">交易与资金</div>
+      <a href="orders.html" class="lyn-item">
+        <span class="lyn-ic lyn-ic-purple"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg></span>
+        交易流水</a>
+      <a href="withdraw.html" class="lyn-item">
+        <span class="lyn-ic lyn-ic-green"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg></span>
+        提现申请</a>
+      <div class="lyn-group">更多</div>
+      <a href="index.html" class="lyn-item">
+        <span class="lyn-ic lyn-ic-orange"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 11l9-8 9 8M5 10v10h14V10"/></svg></span>
+        首页</a>
+      <a href="docs.html" class="lyn-item">
+        <span class="lyn-ic lyn-ic-orange"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4h13l3 3v13H4zM8 9h8M8 13h8M8 17h5"/></svg></span>
+        开发者文档</a>
+      <a href="support.html" class="lyn-item">
+        <span class="lyn-ic lyn-ic-orange"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M21 12a8 8 0 01-11.6 7.1L4 21l1.9-5.4A8 8 0 1121 12z"/></svg></span>
+        帮助支持</a>
+      <a href="login.html" class="lyn-item" style="color: var(--primary); font-weight: 600;">
+        <span class="lyn-ic lyn-ic-blue"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 8l-4 4 4 4m6-8l4 4-4 4"/></svg></span>
+        商户入驻 →</a>
     </div>
   </div>
 
@@ -175,7 +206,7 @@
         <p>输入商户订单号，实时获取支付结果及回调状态。</p>
         <div class="search-box">
           <input type="text" id="queryOrder" placeholder="输入商户订单号">
-          <button onclick="alert('查询功能开发中')">查询</button>
+          <button onclick="queryOrderNow()">查询</button>
         </div>
       </div>
 
@@ -200,24 +231,33 @@
     </div>
   </main>
 
+  <script src="assets/api.js"></script>
   <script>
-    // 抽屉动画
-    function toggleDrawer(show) {
-      const drawer = document.getElementById('drawer');
-      const mask = document.getElementById('drawerMask');
-      if (show) {
-        mask.style.display = 'block';
-        void mask.offsetWidth; 
-        mask.classList.add('show');
-        drawer.classList.add('open');
-        document.body.style.overflow = 'hidden';
-      } else {
-        mask.classList.remove('show');
-        drawer.classList.remove('open');
-        document.body.style.overflow = 'auto';
-        setTimeout(() => { if (!drawer.classList.contains('open')) mask.style.display = 'none'; }, 400);
-      }
+    // 抽屉动画（lyn- 命名空间）
+    function lynDrawerOpen() {
+      const mask = document.getElementById('lynMask');
+      mask.style.display = 'block';
+      void mask.offsetWidth;
+      mask.classList.add('show');
+      document.getElementById('lynDrawer').classList.add('open');
+      document.body.classList.add('lyn-locked');
     }
+    function lynDrawerClose() {
+      const drawer = document.getElementById('lynDrawer');
+      const mask = document.getElementById('lynMask');
+      mask.classList.remove('show');
+      drawer.classList.remove('open');
+      document.body.classList.remove('lyn-locked');
+      setTimeout(() => { if (!drawer.classList.contains('open')) mask.style.display = 'none'; }, 400);
+    }
+    // 真实订单查询：跳收银台（后端 /payplat/cashier/status）
+    function queryOrderNow() {
+      const v = (document.getElementById('queryOrder').value || '').trim();
+      if (!v) { toast('请输入商户订单号', true); return; }
+      location.href = 'cashier.html?trade_no=' + encodeURIComponent(v);
+    }
+    // 兼容汉堡按钮旧调用
+    function toggleDrawer(show) { show ? lynDrawerOpen() : lynDrawerClose(); }
   </script>
 </body>
 </html>
