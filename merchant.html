@@ -50,7 +50,7 @@
     .key-box .copy-btn { position: absolute; top: 12px; right: 12px; background: #fff; border: 1px solid #e2e8f0; padding: 4px 8px; border-radius: 4px; font-size: 13px; }
 
     /* 筛选区 */
-    .filter-row { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }
+    .filter-row { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; align-items: flex-end; }
     .filter-item { flex: 1; min-width: 150px; }
     .filter-item input, .filter-item select { width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 14px; outline: none; background: #f8fafc; }
     
@@ -94,7 +94,7 @@
       .info-card { padding: 20px; }
       .action-row { flex-direction: column; }
       .action-row button { width: 100%; }
-      .filter-row { flex-direction: column; gap: 12px; }
+      .filter-row { flex-direction: column; gap: 12px; align-items: stretch; }
       .metrics-grid { grid-template-columns: repeat(2, 1fr); }
     }
     
@@ -119,6 +119,8 @@
       <div class="admin-menu-title">交易与资金</div>
       <div class="admin-menu-item" id="menu-orders" onclick="switchPage('orders')">订单记录</div>
       <div class="admin-menu-item" id="menu-withdraw" onclick="switchPage('withdraw')">提现记录</div>
+      <div class="admin-menu-item" id="menu-ledger" onclick="switchPage('ledger')">资金明细</div>
+      
       <div class="admin-menu-title">其他</div>
       <div class="admin-menu-item" onclick="window.location.href='docs.html'">开发文档</div>
       <div class="admin-menu-item" style="color: #ef4444;" onclick="logout()">退出登录</div>
@@ -230,32 +232,24 @@
 
       <!-- ================= 订单记录页 ================= -->
       <div id="page-orders" class="hidden">
-        <div class="page-title">
-          订单记录 <span class="page-subtitle">共 91 单</span>
-        </div>
-        
+        <div class="page-title">订单记录 <span class="page-subtitle">共 91 单</span></div>
         <div class="info-card">
           <div class="filter-row">
             <div class="filter-item"><input type="text" placeholder="系统订单号"></div>
             <div class="filter-item"><input type="text" placeholder="商户订单号"></div>
             <div class="filter-item"><select><option>所有支付方式</option><option>支付宝</option></select></div>
-            <div class="filter-item"><select><option>全部状态</option><option>未支付</option><option>已支付</option><option>已退款</option></select></div>
+            <div class="filter-item"><select><option>全部状态</option><option>未支付</option><option>已支付</option></select></div>
           </div>
           <div style="display: flex; gap: 12px;">
             <button class="btn-primary" style="padding: 10px 24px;">搜索</button>
             <button class="btn-outline" style="padding: 10px 24px;">重置</button>
-            <button class="btn-outline" style="padding: 10px 24px; border-color: #ccc; color: #666;">统计</button>
           </div>
         </div>
-
         <div class="info-card" style="padding: 0; overflow: hidden;">
           <div class="table-container">
             <table>
               <thead>
-                <tr>
-                  <th>系统订单号</th><th>商户订单号</th><th>商品名称</th><th>商品金额</th>
-                  <th>扣费后金额</th><th>支付方式</th><th>创建时间</th><th>支付状态</th><th>操作</th>
-                </tr>
+                <tr><th>系统订单号</th><th>商户订单号</th><th>商品名称</th><th>商品金额</th><th>扣费后金额</th><th>支付方式</th><th>创建时间</th><th>支付状态</th><th>操作</th></tr>
               </thead>
               <tbody id="orders-tbody"></tbody>
             </table>
@@ -266,35 +260,18 @@
       <!-- ================= 提现记录页 ================= -->
       <div id="page-withdraw" class="hidden">
         <div class="page-title">提现记录</div>
-        
-        <!-- 顶部看板 -->
         <div class="metrics-grid">
-          <div class="metric-card">
-            <div class="metric-title">可提现 USDT</div>
-            <div class="metric-value">0.000000 <span>USDT</span></div>
-          </div>
-          <div class="metric-card">
-            <div class="metric-title">待提现 USDT</div>
-            <div class="metric-value">0.000000 <span>USDT</span></div>
-          </div>
-          <div class="metric-card">
-            <div class="metric-title">审核中 USDT</div>
-            <div class="metric-value">0.000000 <span>USDT</span></div>
-          </div>
-          <div class="metric-card">
-            <div class="metric-title">已提现 USDT</div>
-            <div class="metric-value">0.000000 <span>USDT</span></div>
-          </div>
+          <div class="metric-card"><div class="metric-title">可提现 USDT</div><div class="metric-value">0.000000 <span>USDT</span></div></div>
+          <div class="metric-card"><div class="metric-title">待提现 USDT</div><div class="metric-value">0.000000 <span>USDT</span></div></div>
+          <div class="metric-card"><div class="metric-title">审核中 USDT</div><div class="metric-value">0.000000 <span>USDT</span></div></div>
+          <div class="metric-card"><div class="metric-title">已提现 USDT</div><div class="metric-value">0.000000 <span>USDT</span></div></div>
         </div>
-
-        <!-- 申请提现表单 -->
         <div class="info-card">
           <div class="section-title">申请提现</div>
           <div class="radio-group" style="max-width: 400px;">
             <div class="radio-card active" id="withdraw-all" onclick="selectWithdrawType('all')">全部提现</div>
             <div class="radio-card" id="withdraw-custom" onclick="selectWithdrawType('custom')">自定义金额</div>
           </div>
-          
           <div class="info-row">
             <label class="info-label">提现金额 (USDT) <span style="color:#999; font-weight:normal;">最多 0.000000</span></label>
             <input type="number" id="withdraw-amount" value="0.000000" readonly style="width: 100%; max-width: 400px; padding: 14px 16px; border: 1px solid var(--border-color); border-radius: 8px; background: #f8fafc;">
@@ -307,16 +284,10 @@
             <label class="info-label">网络</label>
             <input type="text" value="USDT-TRC20" readonly style="width: 100%; max-width: 400px; padding: 14px 16px; border: 1px solid var(--border-color); border-radius: 8px; background: #f8fafc;">
           </div>
-          
           <div class="tip-text">提现手续费：100 USDT 起免手续费，低于 100 USDT 收 1 USDT</div>
           <div class="rule-text">规则：审核通过后，于每日 12:00-23:00 处理。</div>
-
-          <div class="action-row" style="max-width: 400px;">
-            <button class="btn-primary" style="width: 100%;" onclick="toast('请先绑定USDT地址')">确认提现</button>
-          </div>
+          <div class="action-row" style="max-width: 400px;"><button class="btn-primary" style="width: 100%;" onclick="toast('请先绑定USDT地址')">确认提现</button></div>
         </div>
-
-        <!-- 提现记录列表 -->
         <div class="page-title" style="font-size: 16px; margin-top: 32px;">提现记录</div>
         <div class="info-card" style="padding: 0; overflow: hidden;">
           <div style="padding: 20px; border-bottom: 1px solid var(--border-color); display: flex; gap: 12px;">
@@ -326,15 +297,52 @@
           </div>
           <div class="table-container" style="border: none; border-radius: 0;">
             <table>
+              <thead><tr><th>提现方式</th><th>USDT地址</th><th>提现金额</th><th>网络</th><th>状态/留言</th><th>交易哈希/TXID</th><th>申请时间</th></tr></thead>
+              <tbody><tr><td colspan="7"><div class="empty-state">没有找到匹配的记录</div></td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= 资金明细页 ================= -->
+      <div id="page-ledger" class="hidden">
+        <div class="page-title">资金明细</div>
+        
+        <div class="info-card">
+          <div class="filter-row">
+            <div class="filter-item" style="max-width: 200px;">
+              <select style="width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 14px; outline: none; background: #f8fafc;">
+                <option value="">操作类型</option>
+                <option value="income">收入</option>
+                <option value="withdraw">提现</option>
+                <option value="refund">退款</option>
+              </select>
+            </div>
+            <div style="display: flex; gap: 12px;">
+              <button class="btn-primary" style="padding: 10px 24px;">搜索</button>
+              <button class="btn-outline" style="padding: 10px 24px;">重置</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-card" style="padding: 0; overflow: hidden;">
+          <div class="table-container">
+            <table>
               <thead>
                 <tr>
-                  <th>提现方式</th><th>USDT地址</th><th>提现金额</th><th>网络</th>
-                  <th>状态/留言</th><th>交易哈希/TXID</th><th>申请时间</th>
+                  <th>操作类型</th>
+                  <th>变更金额</th>
+                  <th>变更前金额</th>
+                  <th>变更后金额</th>
+                  <th>资金状态</th>
+                  <th>可提现时间</th>
+                  <th>时间</th>
+                  <th>关联订单号</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
-                  <td colspan="7">
+                  <td colspan="8">
                     <div class="empty-state">没有找到匹配的记录</div>
                   </td>
                 </tr>
@@ -351,7 +359,6 @@
   <script>
     if (!getToken()) window.location.href = 'login.html';
 
-    // 模拟订单数据
     const mockOrders = [
       { sys: '2026102701154687755', mch: 'T1793034946', name: 'test', money: '0.10', real: '0.10', type: '支付宝', time: '10-27 01:15:46', status: 'unpaid' },
       { sys: '2026102701110988458', mch: 'T1793034669', name: 'test', money: '0.10', real: '0.10', type: '支付宝', time: '10-27 01:11:09', status: 'unpaid' },
@@ -377,38 +384,22 @@
       `).join('');
     }
 
-    // 页面切换
     function switchPage(page) {
-      document.getElementById('page-api').classList.add('hidden');
-      document.getElementById('page-profile').classList.add('hidden');
-      document.getElementById('page-orders').classList.add('hidden');
-      document.getElementById('page-withdraw').classList.add('hidden');
-      
-      document.getElementById('menu-api').classList.remove('active');
-      document.getElementById('menu-profile').classList.remove('active');
-      document.getElementById('menu-orders').classList.remove('active');
-      document.getElementById('menu-withdraw').classList.remove('active');
+      // 隐藏所有页面
+      ['api', 'profile', 'orders', 'withdraw', 'ledger'].forEach(p => {
+        document.getElementById('page-' + p).classList.add('hidden');
+        document.getElementById('menu-' + p).classList.remove('active');
+      });
 
-      if (page === 'api') {
-        document.getElementById('page-api').classList.remove('hidden');
-        document.getElementById('menu-api').classList.add('active');
-        document.getElementById('mobile-title').innerText = 'API信息';
-      } else if (page === 'profile') {
-        document.getElementById('page-profile').classList.remove('hidden');
-        document.getElementById('menu-profile').classList.add('active');
-        document.getElementById('mobile-title').innerText = '修改资料';
-      } else if (page === 'orders') {
-        document.getElementById('page-orders').classList.remove('hidden');
-        document.getElementById('menu-orders').classList.add('active');
-        document.getElementById('mobile-title').innerText = '订单记录';
-      } else if (page === 'withdraw') {
-        document.getElementById('page-withdraw').classList.remove('hidden');
-        document.getElementById('menu-withdraw').classList.add('active');
-        document.getElementById('mobile-title').innerText = '提现记录';
-      }
+      // 显示当前页面
+      document.getElementById('page-' + page).classList.remove('hidden');
+      document.getElementById('menu-' + page).classList.add('active');
+      
+      // 修改顶栏标题
+      const titles = { 'api': 'API信息', 'profile': '修改资料', 'orders': '订单记录', 'withdraw': '提现记录', 'ledger': '资金明细' };
+      document.getElementById('mobile-title').innerText = titles[page] || '控制台';
     }
 
-    // 提现方式切换
     function selectWithdrawType(type) {
       const amountInput = document.getElementById('withdraw-amount');
       if (type === 'all') {
@@ -425,7 +416,6 @@
       }
     }
 
-    // 结算方式切换 (修改资料页)
     function selectSettle(type) {
       if (type === 'usdt') {
         document.getElementById('card-usdt').classList.add('active');
@@ -440,7 +430,6 @@
       }
     }
 
-    // 复制功能
     function copyText(elementId) {
       const el = document.getElementById(elementId);
       const text = el.value !== undefined ? el.value : el.innerText;
@@ -451,10 +440,9 @@
       });
     }
 
-    // 页面加载时默认显示提现记录
     window.onload = () => {
       renderOrders();
-      switchPage('withdraw'); 
+      switchPage('ledger'); // 默认打开资金明细，让你直接看效果
     };
   </script>
 </body>
