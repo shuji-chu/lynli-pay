@@ -137,8 +137,7 @@ function startCosmos() {
 /* ---------------- 路由 ---------------- */
 const routes = {
   "": pageHome, "docs": pageDocs, "merchant": pageMerchant, "merchant/join": pageJoin, "join": pageJoin,
-  "keys": pageKeys, "orders": pageOrders, "withdraw": pageWithdraw, "cashier": pageCashier,
-  "support": pageSupport
+  "keys": pageMerchant, "cashier": pageCashier, "support": pageSupport
 };
 
 function nav() {
@@ -188,79 +187,46 @@ window.homeSearch = function () {
 /* ---------------- 开发者文档 ---------------- */
 function pageDocs() {
   $("#app").innerHTML = `
-  <div class="docs">
-    <aside class="glass">
-      <a href="#/docs" class="on">快速开始</a>
-      <a href="#/docs">签名规则</a>
-      <a href="#/docs">支付网关</a>
-      <a href="#/docs">回调通知</a>
-      <a href="#/docs">查单接口</a>
+  <div class="glass" style="max-width:900px; margin:40px auto; padding:40px; border-radius:24px; display:flex; gap:30px;">
+    <aside style="width:200px; flex-shrink:0;">
+      <h3 style="font-size:16px; margin-bottom:15px; color:var(--ink);">接入指南</h3>
+      <div style="display:flex; flex-direction:column; gap:10px; font-size:14px;">
+        <a href="javascript:void(0)" style="color:var(--blue); font-weight:bold;">快速开始</a>
+        <a href="javascript:void(0)" style="color:#666;">签名规则</a>
+        <a href="javascript:void(0)" style="color:#666;">支付网关</a>
+        <a href="javascript:void(0)" style="color:#666;">异步通知</a>
+      </div>
     </aside>
-    <article class="glass doc-body">
-      <h2>快速开始</h2>
-      <p>1. 使用 Lynli 主站账号登录 <a href="#/merchant">商户中心</a>，提交站点信息申请入驻；</p>
-      <p>2. 平台审批通过后，在「API 密钥」页获取 <code>app_id</code> 与 <code>app_secret</code>；</p>
-      <p>3. 按下方签名规则调用网关下单，把用户引导至收银台完成支付；</p>
-      <p>4. 支付成功后平台按 <b>固定 10%</b> 抽成，<b>90%</b> 自动计入你的商户余额，可随时提现。</p>
+    
+    <article style="flex:1; border-left:1px solid #eee; padding-left:30px;">
+      <h2 style="font-size:24px; margin-bottom:20px;">快速开始</h2>
+      <p style="color:#444; font-size:14px; margin-bottom:15px; line-height:1.6;">1. 登录后前往「商户中心」提交入驻申请。</p>
+      <p style="color:#444; font-size:14px; margin-bottom:15px; line-height:1.6;">2. 获取系统自动分配的 <code>app_id</code> 与 <code>app_secret</code>。</p>
+      <p style="color:#444; font-size:14px; margin-bottom:30px; line-height:1.6;">3. 按下方签名规则调用网关下单。</p>
 
-      <h2>签名规则（MD5）</h2>
-      <p>所有网关请求必须携带 <code>sign</code>。生成方式：</p>
-      <ul>
-        <li>剔除 <code>sign</code> 与空值参数；</li>
-        <li>剩余参数按参数名 <b>ASCII 升序</b> 排列，拼成 <code>k1=v1&amp;k2=v2&amp;…</code>；</li>
-        <li>末尾直接拼接 <code>app_secret</code>（无 &amp; 分隔），对整体做 MD5，即 32 位小写十六进制。</li>
-      </ul>
-      <pre><b>签名示例</b>
+      <h2 style="font-size:20px; margin-bottom:15px;">签名规则（MD5）</h2>
+      <p style="color:#444; font-size:14px; margin-bottom:10px;">剔除 <code>sign</code> 和空值，按参数名 ASCII 升序拼接，末尾直接拼接 <code>app_secret</code> 后进行 MD5 加密，取 32 位小写。</p>
+      <pre style="background:#f4f6f8; padding:15px; border-radius:8px; font-size:13px; color:#333; overflow-x:auto; margin-bottom:30px;">
 params = { app_id, out_trade_no, amount, name, timestamp }
-raw  = "amount=100.00&amp;app_id=QTxxx…&amp;name=订单&amp;out_trade_no=M1001&amp;timestamp=1735689600" + app_secret
-sign = md5(raw)   <b>// 32 位小写</b></pre>
+raw  = "amount=100.00&app_id=QTxxx&name=订单&out_trade_no=M1001&timestamp=1735689600" + app_secret
+sign = md5(raw)</pre>
 
-      <h2>支付网关 · 下单</h2>
-      <p><code>POST /api/v1/payplat/gateway/submit</code></p>
-      <table class="tbl">
-        <tr><th>参数</th><th>必填</th><th>说明</th></tr>
-        <tr><td>app_id</td><td>是</td><td>平台分配的商户标识</td></tr>
-        <tr><td>out_trade_no</td><td>是</td><td>商户侧唯一订单号</td></tr>
-        <tr><td>amount</td><td>是</td><td>金额（元），两位小数</td></tr>
-        <tr><td>name</td><td>否</td><td>商品名称（收银台展示）</td></tr>
-        <tr><td>method</td><td>否</td><td><code>alipay</code>（默认）/ <code>usdt</code></td></tr>
-        <tr><td>notify_url</td><td>否</td><td>支付成功异步通知地址</td></tr>
-        <tr><td>timestamp</td><td>是</td><td>秒级时间戳</td></tr>
-        <tr><td>sign</td><td>是</td><td>MD5 签名</td></tr>
+      <h2 style="font-size:20px; margin-bottom:15px;">支付网关·下单</h2>
+      <p style="color:#444; font-size:14px; margin-bottom:10px;"><strong>POST</strong> <code>/api/v1/payplat/gateway/submit</code></p>
+      <table style="width:100%; border-collapse:collapse; font-size:14px; margin-bottom:30px;">
+        <tr style="background:#f8fafc; border-bottom:1px solid #eee;">
+          <th style="padding:10px; text-align:left;">参数</th>
+          <th style="padding:10px; text-align:left;">必填</th>
+          <th style="padding:10px; text-align:left;">说明</th>
+        </tr>
+        <tr style="border-bottom:1px solid #eee;"><td style="padding:10px;">app_id</td><td style="padding:10px;">是</td><td style="padding:10px;">平台分配商户标识</td></tr>
+        <tr style="border-bottom:1px solid #eee;"><td style="padding:10px;">out_trade_no</td><td style="padding:10px;">是</td><td style="padding:10px;">商户唯一订单号</td></tr>
+        <tr style="border-bottom:1px solid #eee;"><td style="padding:10px;">amount</td><td style="padding:10px;">是</td><td style="padding:10px;">金额（元）</td></tr>
       </table>
-      <pre><b>返回</b>
-{ "code": 0, "trade_no": "PAY17xxxx", "amount": "100.00",
-  "payurl": "https://…", "qrcode": "https://…" }</pre>
-      <p>拿到 <code>trade_no</code> 后，引导用户打开收银台：
-      <code>https://pay.lynli.me/#/cashier?trade_no=PAY17xxxx</code></p>
-
-      <h2>回调通知</h2>
-      <p>支付成功后，平台以 <b>POST form-urlencoded</b> 请求你下单时传入的 <code>notify_url</code>：</p>
-      <pre>out_trade_no=M1001&amp;trade_no=PAY17xxxx&amp;amount=100.00
-&amp;status=TRADE_SUCCESS&amp;timestamp=1735689660&amp;sign=…</pre>
-      <ul>
-        <li>签名规则与请求一致（同样剔除 sign、ASCII 升序 + app_secret 后 MD5），请务必<b>验签</b>；</li>
-        <li>收到通知请返回 HTTP 200 表示接收成功；失败将自动重试，最多 3 次；</li>
-        <li>通知可能重复发送，请以订单状态做<b>幂等</b>处理。</li>
-      </ul>
-
-      <h2>查单接口（签名）</h2>
-      <p><code>GET /api/v1/payplat/gateway/query?app_id=&amp;trade_no=&amp;timestamp=&amp;sign=</code></p>
-      <p>返回 <code>status</code>：<code>0</code> 待支付 · <code>2</code> 已支付已结算；<code>fee</code> 为平台抽成，<code>credit</code> 为商户入账。</p>
-
-      <h2>费率与结算</h2>
-      <ul>
-        <li>手续费 = 订单金额 × <b>10%</b>，下单成功、支付到账即结算；</li>
-        <li>商户余额 = 累计入账（90%）− 已提现金额；</li>
-        <li>提现在商户中心发起，平台人工审核打款；被拒绝金额自动退回余额。</li>
-      </ul>
-
-      <p class="doc-sign">—— 晴天支付 · 开发者文档 · 文档署名：<b>晴天</b> ☀️</p>
     </article>
   </div>`;
 }
 
-/* ---------------- 商户中心 ---------------- */
 function pageMerchant() {
   if (!token()) { pageJoin(true); return; }
   
@@ -595,75 +561,25 @@ function pageSupport() {
 }
 
 /* ---------------- 收银台 ---------------- */
-let _pollTimer = null;
 function pageCashier() {
-  const q = new URLSearchParams((location.hash.split("?")[1] || ""));
-  const no = q.get("trade_no") || "";
-  $("#app").innerHTML = `<div class="glass cashier"><p style="color:var(--ink-3)">加载中…</p></div>`;
-  clearInterval(_pollTimer);
-  if (!no) { $("#app").innerHTML = `<div class="glass cashier"><h2>缺少订单号</h2><p class="pay-state">请从商户站跳转，或在首页搜索框输入订单号</p></div>`; return; }
-  renderCashier(no);
+  $("#app").innerHTML = `
+  <div class="glass" style="max-width:500px; margin:40px auto; padding:40px; border-radius:24px; text-align:center;">
+    <h2 style="font-size:24px; margin-bottom:10px; color:var(--ink);">订单支付</h2>
+    <div style="font-size:36px; font-weight:bold; color:var(--blue); margin:20px 0;">¥ 0.00</div>
+    <p style="color:#666; font-size:14px; margin-bottom:30px;">请选择支付方式完成订单</p>
+    
+    <div style="display:flex; flex-direction:column; gap:15px;">
+      <button class="btn btn-primary" style="padding:15px; border-radius:12px; font-size:16px; display:flex; justify-content:center; align-items:center; gap:10px;">
+        支付宝支付
+      </button>
+      <button class="btn btn-ghost" style="padding:15px; border-radius:12px; font-size:16px; display:flex; justify-content:center; align-items:center; gap:10px;">
+        USDT (TRC20) 支付
+      </button>
+    </div>
+    
+    <p style="color:#999; font-size:12px; margin-top:30px;">请在 15 分钟内完成支付，超时订单将自动关闭。</p>
+  </div>`;
 }
-async function renderCashier(no, state) {
-  try {
-    const j = state || await api("GET", "/payplat/cashier/status?trade_no=" + encodeURIComponent(no));
-    if (!j || j.code === 404) {
-      $("#app").innerHTML = `<div class="glass cashier"><h2>订单不存在</h2><p class="pay-state">请核对订单号：${esc(no)}</p></div>`;
-      return;
-    }
-    const d = j;
-    if (d.paid || d.status >= 2) {
-      clearInterval(_pollTimer);
-      $("#app").innerHTML = `<div class="glass cashier">
-        <div class="success-ic">✓</div><h2>支付成功</h2>
-        <div class="amt">¥${money(d.amount)}</div>
-        <p class="name">${esc(d.name || "")} · 单号 ${esc(d.trade_no)}</p>
-        <p class="pay-state">货款已按 90% 自动计入商户余额</p>
-        <button class="btn btn-primary" style="margin-top:18px" onclick="location.hash='#/'">返回首页</button></div>`;
-      return;
-    }
-    let payPart;
-    if (d.method === "usdt") {
-      payPart = `
-        <h3 style="margin-bottom:10px">TRC20 · USDT 转账</h3>
-        <div class="usdt-addr"><code id="usdt-addr">正在获取收款地址…</code>
-          <button class="btn btn-ghost btn-sm" id="usdt-copy" style="display:none" onclick="copyTxt(document.getElementById('usdt-addr').textContent)">复制</button></div>
-        <p style="font-size:12.5px;color:var(--ink-3)">请向以上地址转账对应金额，链上确认后自动到账（约 1 分钟）</p>`;
-    } else {
-      payPart = `
-        <h3 style="margin-bottom:12px">支付宝扫码支付</h3>
-        <div class="qr-box"><img id="alipay-qr" alt="支付宝收款码"></div>
-        <p style="font-size:12.5px;color:var(--ink-3)">请使用支付宝 App 扫一扫完成支付</p>`;
-    }
-    $("#app").innerHTML = `<div class="glass cashier">
-      <span class="badge ok">晴天收银台</span>
-      <div class="amt">¥${money(d.amount)}</div>
-      <p class="name">${esc(d.name || "")} · 单号 ${esc(d.trade_no)}</p>
-      ${payPart}
-      <p class="pay-state"><span class="dot"></span>等待支付确认中，页面每 3 秒自动刷新…</p>
-      <button class="btn btn-ghost btn-sm" style="margin-top:12px" onclick="renderCashier('${esc(no)}')">手动刷新</button>
-    </div>`;
-    if (d.method !== "usdt" && d.payurl) {
-      const QR = "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=" + encodeURIComponent(d.payurl);
-      $("#alipay-qr").src = QR;
-    }
-    if (d.method === "usdt" && d.address) {
-      const el = $("#usdt-addr");
-      if (el) { el.textContent = d.address + "（网络 " + (d.network || "TRC20") + "）"; $("#usdt-copy").style.display = ""; }
-    }
-  } catch (e) {
-    $("#app").innerHTML = `<div class="glass cashier"><h2>加载失败</h2><p class="pay-state">${esc(String(e.message || e).slice(0, 80))}</p></div>`;
-  }
-  // 3 秒轮询查单
-  clearInterval(_pollTimer);
-  _pollTimer = setInterval(async () => {
-    try {
-      const j = await api("GET", "/payplat/cashier/status?trade_no=" + encodeURIComponent(no));
-      if (j && (j.paid || j.status >= 2)) { toast("支付成功！"); renderCashier(no, j); }
-    } catch (e) { /* 静默重试 */ }
-  }, 3000);
-}
-window.renderCashier = renderCashier;
 
 /* ---------------- 启动 ---------------- */
 startCosmos();
