@@ -398,7 +398,6 @@ window.doAuth = async function (isReg) {
       const code = ($("#au-code").value || "").trim();
       if (!code) throw new Error("请输入邮箱验证码");
       
-      // 1. 真实注册接口
       const regRes = await api("POST", "/passport/auth/register", { email, password: pass, code });
       if (regRes.code !== undefined && regRes.code !== 1 && regRes.code !== 0) {
          throw new Error(regRes.message || regRes.msg || "注册失败");
@@ -406,24 +405,14 @@ window.doAuth = async function (isReg) {
       toast("注册成功，正在登录...");
     }
     
-    // 2. 登录接口
     const loginRes = await api("POST", "/passport/auth/login", { email, password: pass });
     if (!(loginRes.data && loginRes.data.token)) throw new Error(loginRes.message || "登录失败");
     
     setToken(loginRes.data.token);
+    toast("登录成功！");
     
-    // 3. 提交入驻申请（如果是刚注册或者还未入驻）
-    if (isReg) {
-      const site = prompt("账号已就绪！请输入你的商户站点名称：");
-      if (site) {
-        const url = prompt("站点网址（可选，如 https://xxx.com）：") || "";
-        const notify = prompt("支付异步通知地址 notify_url（可选）：") || "";
-        await api("POST", "/payplat/merchant/apply", { site_name: site, site_url: url, contact: email, notify_url: notify });
-        toast("入驻申请已提交，请等待审核");
-      }
-    }
-    
-    location.hash = "#/keys"; // 进入密钥中心或等待审核页面
+    // 登录成功直接刷新页面，路由会自动跳转
+    setTimeout(() => { location.reload(); }, 800);
     
   } catch (e) { 
     toast(e.message || e, true); 
@@ -431,6 +420,25 @@ window.doAuth = async function (isReg) {
     btn.disabled = false; 
     btn.textContent = isReg ? "注册并入驻" : "登录";
   }
+};
+
+function pageMerchant() {
+  if (!token()) { pageJoin(true); return; }
+  
+  $("#app").innerHTML = `<div class="glass auth-wrap" style="text-align:center; padding: 50px 20px;">
+    <div class="success-ic" style="background:#28a745; color:#fff; font-size:36px; padding:20px; border-radius:50%; display:inline-block; margin-bottom:20px; width: 40px; height: 40px; line-height: 40px;">✓</div>
+    <h2>已成功登录</h2>
+    <p class="sub">欢迎回来！你的账号已就绪。</p>
+    <div style="margin-top:30px; display:flex; gap:10px; justify-content:center;">
+      <button class="btn btn-ghost" onclick="logout()">退出登录</button>
+    </div>
+  </div>`;
+}
+
+window.logout = function () { 
+  setToken(""); 
+  toast("已退出登录"); 
+  location.hash = "#/"; 
 };
 
 async function pageKeys() {
