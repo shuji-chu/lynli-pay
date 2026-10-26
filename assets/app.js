@@ -137,6 +137,7 @@ function startCosmos() {
 const routes = {
   "": pageHome, "docs": pageDocs, "merchant": pageMerchant, "merchant/join": pageJoin, "join": pageJoin,
   "keys": pageKeys, "orders": pageOrders, "withdraw": pageWithdraw, "cashier": pageCashier,
+  "support": pageSupport
 };
 
 function nav() {
@@ -432,6 +433,43 @@ window.doWithdraw = async function () {
     pageWithdraw();
   } catch (e) { toast(e.message || e, true); }
 };
+
+
+/* ---------------- 客服支持 ---------------- */
+function pageSupport() {
+  $("#app").innerHTML = `
+  <div class="glass" style="max-width:800px;margin:40px auto;padding:40px;border-radius:24px;">
+    <div style="text-align:center;margin-bottom:40px;">
+      <h2 style="font-size:28px;color:var(--ink);margin-bottom:12px;">帮助与支持</h2>
+      <p class="sub">遇到问题？查看常见问题，或联系我们的官方客服。</p>
+    </div>
+
+    <div style="display:grid;gap:16px;margin-bottom:40px;">
+      <div style="padding:20px;border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,0.6);backdrop-filter:blur(10px);">
+        <h3 style="font-size:16px;margin-bottom:10px;color:var(--ink);">如何接入晴天支付？</h3>
+        <p style="font-size:14px;color:var(--ink-2);line-height:1.6;">登录后前往「商户入驻」，填写站点名称即可生成专属 app_id 与 app_secret，随后即可调用网关。</p>
+      </div>
+
+      <div style="padding:20px;border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,0.6);backdrop-filter:blur(10px);">
+        <h3 style="font-size:16px;margin-bottom:10px;color:var(--ink);">提现多久到账？</h3>
+        <p style="font-size:14px;color:var(--ink-2);line-height:1.6;">提现申请提交后由平台人工审核（通常 1-2 小时内），审核通过后自动打款至您的支付宝账号。</p>
+      </div>
+
+      <div style="padding:20px;border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,0.6);backdrop-filter:blur(10px);">
+        <h3 style="font-size:16px;margin-bottom:10px;color:var(--ink);">支付回调没有收到？</h3>
+        <p style="font-size:14px;color:var(--ink-2);line-height:1.6;">请检查您的服务器 443/80 端口是否对外开放，以及是否有防火墙拦截了平台的异步通知 IP。建议查看开发者文档的回调说明。</p>
+      </div>
+    </div>
+
+    <div style="text-align:center;padding:36px 20px;border-radius:20px;background:linear-gradient(135deg, var(--blue) 0%, #1a56db 100%);color:#fff;box-shadow:0 10px 25px rgba(30,111,217,0.2);">
+      <h3 style="font-size:20px;margin-bottom:12px;color:#fff;">没有找到答案？</h3>
+      <p style="font-size:14px;opacity:0.9;margin-bottom:24px;">我们的客服团队在线为你解答疑惑</p>
+      <a href="https://t.me/nzzf" target="_blank" class="btn" style="background:#fff;color:var(--blue);display:inline-flex;align-items:center;justify-content:center;padding:12px 24px;font-weight:600;border-radius:12px;text-decoration:none;">
+        ✈️ 联系 Telegram 客服
+      </a>
+    </div>
+  </div>`;
+}
 
 /* ---------------- 收银台 ---------------- */
 let _pollTimer = null;
