@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>晴天支付 · QingTian Pay — 多商户聚合支付平台</title>
+  <meta name="description" content="晴天支付：与 Lynli 生态同源的统一用户体系多商户聚合支付平台。支付宝 / USDT 双通道，固定 10% 费率，秒级结算。">
+  <link rel="icon" type="image/png" href="./assets/favicon.png">
+  <link rel="apple-touch-icon" href="./assets/logo.png">
+  <link rel="stylesheet" href="./assets/style.css?v=1">
+</head>
+<body>
+  <!-- 动态宇航员漂浮背景（纯代码，丝滑 60fps） -->
+  <canvas id="cosmos"></canvas>
+  <div class="aurora" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <a class="brand" href="#/">
+      <img src="./assets/logo.png" alt="晴天支付" class="brand-logo">
+      <span>晴天支付</span><i>QingTian Pay</i>
+    </a>
+    <nav class="topnav">
+      <a href="#/" data-nav="home">首页</a>
+      <a href="#/docs" data-nav="docs">开发者文档</a>
+      <a href="#/merchant" data-nav="merchant">商户中心</a>
+    </nav>
+    <a class="btn btn-primary" href="#/merchant/join">商户入驻</a>
+  </header>
+
+  <main id="app"></main>
+
+  <footer class="footer">
+    <img src="./assets/logo.png" alt="" class="f-logo">
+    <div>
+      <b>晴天支付 QingTian Pay</b>
+      <p>统一用户体系 · 专属支付标识 · 资金实时结算 · 支付宝 / USDT 双通道</p>
+      <p class="f-sign">© 2026 晴天 · 与 Lynli 生态深度联动 · Powered by 晴天</p>
+    </div>
+  </footer>
+
+  <div id="toast" class="toast"></div>
+  <script src="./assets/app.js?v=1"></script>
+</body>
+</html>

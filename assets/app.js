@@ -1,0 +1,510 @@
+/* ============================================================
+   晴天支付 · 前端逻辑（纯原生 JS，hash 路由）
+   ------------------------------------------------------------
+   路由：#/ 首页 · #/docs 开发者文档 · #/merchant 商户中心 · #/cashier 收银台
+   后端：api.lynli.me（/api/v1/payplat/* + /api/v1/passport/auth/login）
+   ============================================================ */
+"use strict";
+
+const API = (location.hostname === "pay.lynli.me" || location.hostname === "localhost" || location.hostname === "127.0.0.1")
+  ? "https://api.lynli.me/api/v1"
+  : "https://api.lynli.me/api/v1";
+
+/* ---------------- 工具 ---------------- */
+const $ = (s, el) => (el || document).querySelector(s);
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const money = v => Number(v || 0).toLocaleString("zh-CN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+let _toastTimer = null;
+function toast(msg, isErr) {
+  const t = $("#toast");
+  t.textContent = msg;
+  t.classList.toggle("err", !!isErr);
+  t.classList.add("show");
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => t.classList.remove("show"), 2600);
+}
+
+function token() { return localStorage.getItem("qt_token") || ""; }
+function setToken(t) { t ? localStorage.setItem("qt_token", t) : localStorage.removeItem("qt_token"); }
+
+async function api(method, path, body) {
+  const opt = { method, headers: { "Content-Type": "application/json" } };
+  if (token()) opt.headers.Authorization = "Bearer " + token();
+  if (body !== undefined) opt.body = JSON.stringify(body);
+  const res = await fetch(API + path, opt);
+  let j = null;
+  try { j = await res.json(); } catch (e) { /* ignore */ }
+  if (!res.ok && !(j && (j.data || j.code === 0))) {
+    const msg = (j && (j.message || j.msg)) || ("请求失败 HTTP " + res.status);
+    throw new Error(msg);
+  }
+  return j;
+}
+
+/* ---------------- 动态宇航员漂浮背景（纯代码，60fps 丝滑） ---------------- */
+function startCosmos() {
+  const cv = $("#cosmos"), ctx = cv.getContext("2d");
+  let W, H, dpr, t0 = performance.now();
+  const stars = [];
+  // 宇航员：位置/姿态/呼吸相位
+  const astro = { x: .78, y: .3, s: 1, rot: 0, phase: Math.random() * 6.28 };
+  function resize() {
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = cv.clientWidth; H = cv.clientHeight;
+    cv.width = W * dpr; cv.height = H * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    stars.length = 0;
+    const n = Math.round(W * H / 16000);
+    for (let i = 0; i < n; i++) stars.push({
+      x: Math.random() * W, y: Math.random() * H,
+      r: Math.random() * 1.6 + .4, a: Math.random() * .5 + .15,
+      tw: Math.random() * 6.28, sp: Math.random() * .5 + .2,
+      dx: (Math.random() - .5) * .06, dy: (Math.random() - .5) * .04,
+    });
+  }
+  // 用路径绘制一个小宇航员（白色宇航服 + 蓝色面罩 + 背包 + 漂浮姿态）
+  function drawAstro(x, y, s, rot, breathe) {
+    ctx.save();
+    ctx.translate(x, y); ctx.rotate(rot); ctx.scale(s, s);
+    // 安全绳淡出弧线
+    ctx.strokeStyle = "rgba(30,111,217,.18)"; ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.moveTo(-44, 10); ctx.quadraticCurveTo(-110, -30 + breathe * 2, -170, -8); ctx.stroke();
+    // 背包
+    ctx.fillStyle = "rgba(120,170,230,.85)";
+    roundRect(-30, -20, 20, 34, 7); ctx.fill();
+    // 身体
+    ctx.fillStyle = "rgba(255,255,255,.96)";
+    roundRect(-16, -24, 32, 44, 14); ctx.fill();
+    ctx.strokeStyle = "rgba(30,111,217,.25)"; ctx.lineWidth = 1.4; ctx.stroke();
+    // 头盔
+    ctx.beginPath(); ctx.arc(0, -34, 15, 0, 6.283);
+    ctx.fillStyle = "rgba(255,255,255,.97)"; ctx.fill(); ctx.stroke();
+    // 面罩（蓝天反光）
+    const g = ctx.createLinearGradient(-8, -42, 8, -28);
+    g.addColorStop(0, "#2f7fe0"); g.addColorStop(1, "#8ec9ff");
+    ctx.beginPath(); ctx.ellipse(1, -35, 9, 7, -.2, 0, 6.283);
+    ctx.fillStyle = g; ctx.fill();
+    // 手脚（漂浮姿态）
+    ctx.fillStyle = "rgba(255,255,255,.92)";
+    ctx.save(); ctx.translate(14, -6); ctx.rotate(.6 + Math.sin(breathe) * .1); roundRect(0, -4, 22, 8, 4); ctx.fill(); ctx.restore();
+    ctx.save(); ctx.translate(-16, 8); ctx.rotate(2.4); roundRect(0, -4, 20, 8, 4); ctx.fill(); ctx.restore();
+    ctx.save(); ctx.translate(-8, 22); ctx.rotate(1.9 + Math.cos(breathe) * .08); roundRect(-4, 0, 9, 16, 4.5); ctx.fill(); ctx.restore();
+    ctx.save(); ctx.translate(8, 24); ctx.rotate(1.4 - Math.cos(breathe) * .08); roundRect(-4, 0, 9, 16, 4.5); ctx.fill(); ctx.restore();
+    ctx.restore();
+  }
+  function roundRect(x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+  }
+  let raf, last = 0, running = true;
+  function frame(now) {
+    if (!running) return;
+    raf = requestAnimationFrame(frame);
+    if (now - last < 1000 / 60) return; // 稳定 60fps
+    last = now;
+    const t = (now - t0) / 1000;
+    ctx.clearRect(0, 0, W, H);
+    // 星尘：缓慢漂移 + 闪烁
+    for (const s of stars) {
+      s.x += s.dx; s.y += s.dy;
+      if (s.x < -4) s.x = W + 4; if (s.x > W + 4) s.x = -4;
+      if (s.y < -4) s.y = H + 4; if (s.y > H + 4) s.y = -4;
+      const a = s.a * (.6 + .4 * Math.sin(s.tw + t * s.sp * 2));
+      ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, 6.283);
+      ctx.fillStyle = "rgba(30,111,217," + a.toFixed(3) + ")"; ctx.fill();
+    }
+    // 宇航员：极度丝滑的多重正弦漂浮 + 缓慢自转 + 呼吸
+    astro.phase += .008;
+    const bx = W * astro.x + Math.sin(t * .32) * 26 + Math.sin(t * .13 + 1.7) * 14;
+    const by = H * astro.y + Math.cos(t * .27) * 30 + Math.sin(t * .19 + .6) * 12;
+    astro.rot = Math.sin(t * .21) * .18 + Math.sin(t * .09) * .08;
+    const br = Math.sin(t * 1.6) * .5; // 呼吸相位
+    drawAstro(bx, by, Math.min(1.15, Math.max(.8, W / 1100)), astro.rot, br);
+  }
+  resize();
+  window.addEventListener("resize", resize);
+  document.addEventListener("visibilitychange", () => {
+    running = !document.hidden;
+    if (running) { t0 = performance.now() - last; raf = requestAnimationFrame(frame); }
+  });
+  raf = requestAnimationFrame(frame);
+}
+
+/* ---------------- 路由 ---------------- */
+const routes = {
+  "": pageHome, "docs": pageDocs, "merchant": pageMerchant, "merchant/join": pageJoin, "join": pageJoin,
+  "keys": pageKeys, "orders": pageOrders, "withdraw": pageWithdraw, "cashier": pageCashier,
+};
+
+function nav() {
+  const h = (location.hash || "#/").replace(/^#\//, "").split("?")[0];
+  (routes[h] || pageHome)();
+  document.querySelectorAll(".topnav a").forEach(a =>
+    a.classList.toggle("on", a.dataset.nav === ((h.startsWith("merchant") || ["join","keys","orders","withdraw"].includes(h)) ? "merchant" : h)));
+  window.scrollTo({ top: 0, behavior: "instant" in window ? "instant" : "auto" });
+}
+
+/* ---------------- 首页 ---------------- */
+function pageHome() {
+  $("#app").innerHTML = `
+  <section class="hero">
+    <span class="pill">☀️ 晴天支付 · 与 Lynli 生态同源统一账号</span>
+    <h1>一笔资金，<em>晴天</em>直达</h1>
+    <p class="sub">多商户聚合支付平台：复用 Lynli 统一用户体系，审批即得专属支付标识 app_id / app_secret。支付宝、USDT 双通道收款，固定 10% 费率，余额秒级到账、在线提现。</p>
+    <div class="searchbar">
+      <input id="home-q" placeholder="输入商户订单号，查询支付状态…" />
+      <button class="btn btn-primary" onclick="homeSearch()">查询</button>
+    </div>
+    <div class="hero-cta">
+      <a class="btn btn-primary" href="#/merchant/join">立即入驻 · 0 元开户</a>
+      <a class="btn btn-ghost" href="#/docs">查看接入文档</a>
+    </div>
+  </section>
+  <section class="fee-band">
+    <div class="glass fee-card"><b>10%</b><span>固定费率 · 无任何隐藏费用</span></div>
+    <div class="glass fee-card"><b>90%</b><span>货款实时计入商户余额</span></div>
+    <div class="glass fee-card"><b>T+0</b><span>在线提现 · 平台审核打款</span></div>
+  </section>
+  <section class="feats">
+    <div class="glass feat"><div class="ic">🪪</div><h3>统一用户体系</h3><p>直接使用 Lynli 主站账号登录，商户申请自动绑定真实 user_id，一号通行、无需重复注册。</p></div>
+    <div class="glass feat"><div class="ic">🔐</div><h3>专属支付标识</h3><p>审批通过即刻生成 app_id 与 app_secret，每一笔订单流水都通过 app_id 精准归属，账目清晰可对。</p></div>
+    <div class="glass feat"><div class="ic">💸</div><h3>资金与费率</h3><p>收款统一走平台支付宝通道，固定抽成 10%，剩余 90% 实时计入商户余额，随时在线申请提现。</p></div>
+    <div class="glass feat"><div class="ic">🛡️</div><h3>MD5 安全部名</h3><p>参数 ASCII 升序拼接 + app_secret 摘要，网关验签放行；回调同样带签名，伪造请求无法通过。</p></div>
+    <div class="glass feat"><div class="ic">₿</div><h3>USDT 双通道</h3><p>支付宝之外提供 TRC20 USDT 收款，链上到账自动匹配订单，适合跨境与匿名场景。</p></div>
+    <div class="glass feat"><div class="ic">⚡</div><h3>异步通知</h3><p>支付成功即时回调商户 notify_url，带 MD5 签名与重试机制，业务侧可放心异步发货。</p></div>
+  </section>`;
+}
+window.homeSearch = function () {
+  const v = ($("#home-q").value || "").trim();
+  if (!v) { toast("请输入订单号", true); return; }
+  location.hash = "#/cashier?trade_no=" + encodeURIComponent(v);
+};
+
+/* ---------------- 开发者文档 ---------------- */
+function pageDocs() {
+  $("#app").innerHTML = `
+  <div class="docs">
+    <aside class="glass">
+      <a href="#/docs" class="on">快速开始</a>
+      <a href="#/docs">签名规则</a>
+      <a href="#/docs">支付网关</a>
+      <a href="#/docs">回调通知</a>
+      <a href="#/docs">查单接口</a>
+    </aside>
+    <article class="glass doc-body">
+      <h2>快速开始</h2>
+      <p>1. 使用 Lynli 主站账号登录 <a href="#/merchant">商户中心</a>，提交站点信息申请入驻；</p>
+      <p>2. 平台审批通过后，在「API 密钥」页获取 <code>app_id</code> 与 <code>app_secret</code>；</p>
+      <p>3. 按下方签名规则调用网关下单，把用户引导至收银台完成支付；</p>
+      <p>4. 支付成功后平台按 <b>固定 10%</b> 抽成，<b>90%</b> 自动计入你的商户余额，可随时提现。</p>
+
+      <h2>签名规则（MD5）</h2>
+      <p>所有网关请求必须携带 <code>sign</code>。生成方式：</p>
+      <ul>
+        <li>剔除 <code>sign</code> 与空值参数；</li>
+        <li>剩余参数按参数名 <b>ASCII 升序</b> 排列，拼成 <code>k1=v1&amp;k2=v2&amp;…</code>；</li>
+        <li>末尾直接拼接 <code>app_secret</code>（无 &amp; 分隔），对整体做 MD5，即 32 位小写十六进制。</li>
+      </ul>
+      <pre><b>签名示例</b>
+params = { app_id, out_trade_no, amount, name, timestamp }
+raw  = "amount=100.00&amp;app_id=QTxxx…&amp;name=订单&amp;out_trade_no=M1001&amp;timestamp=1735689600" + app_secret
+sign = md5(raw)   <b>// 32 位小写</b></pre>
+
+      <h2>支付网关 · 下单</h2>
+      <p><code>POST /api/v1/payplat/gateway/submit</code></p>
+      <table class="tbl">
+        <tr><th>参数</th><th>必填</th><th>说明</th></tr>
+        <tr><td>app_id</td><td>是</td><td>平台分配的商户标识</td></tr>
+        <tr><td>out_trade_no</td><td>是</td><td>商户侧唯一订单号</td></tr>
+        <tr><td>amount</td><td>是</td><td>金额（元），两位小数</td></tr>
+        <tr><td>name</td><td>否</td><td>商品名称（收银台展示）</td></tr>
+        <tr><td>method</td><td>否</td><td><code>alipay</code>（默认）/ <code>usdt</code></td></tr>
+        <tr><td>notify_url</td><td>否</td><td>支付成功异步通知地址</td></tr>
+        <tr><td>timestamp</td><td>是</td><td>秒级时间戳</td></tr>
+        <tr><td>sign</td><td>是</td><td>MD5 签名</td></tr>
+      </table>
+      <pre><b>返回</b>
+{ "code": 0, "trade_no": "PAY17xxxx", "amount": "100.00",
+  "payurl": "https://…", "qrcode": "https://…" }</pre>
+      <p>拿到 <code>trade_no</code> 后，引导用户打开收银台：
+      <code>https://pay.lynli.me/#/cashier?trade_no=PAY17xxxx</code></p>
+
+      <h2>回调通知</h2>
+      <p>支付成功后，平台以 <b>POST form-urlencoded</b> 请求你下单时传入的 <code>notify_url</code>：</p>
+      <pre>out_trade_no=M1001&amp;trade_no=PAY17xxxx&amp;amount=100.00
+&amp;status=TRADE_SUCCESS&amp;timestamp=1735689660&amp;sign=…</pre>
+      <ul>
+        <li>签名规则与请求一致（同样剔除 sign、ASCII 升序 + app_secret 后 MD5），请务必<b>验签</b>；</li>
+        <li>收到通知请返回 HTTP 200 表示接收成功；失败将自动重试，最多 3 次；</li>
+        <li>通知可能重复发送，请以订单状态做<b>幂等</b>处理。</li>
+      </ul>
+
+      <h2>查单接口（签名）</h2>
+      <p><code>GET /api/v1/payplat/gateway/query?app_id=&amp;trade_no=&amp;timestamp=&amp;sign=</code></p>
+      <p>返回 <code>status</code>：<code>0</code> 待支付 · <code>2</code> 已支付已结算；<code>fee</code> 为平台抽成，<code>credit</code> 为商户入账。</p>
+
+      <h2>费率与结算</h2>
+      <ul>
+        <li>手续费 = 订单金额 × <b>10%</b>，下单成功、支付到账即结算；</li>
+        <li>商户余额 = 累计入账（90%）− 已提现金额；</li>
+        <li>提现在商户中心发起，平台人工审核打款；被拒绝金额自动退回余额。</li>
+      </ul>
+
+      <p class="doc-sign">—— 晴天支付 · 开发者文档 · 文档署名：<b>晴天</b> ☀️</p>
+    </article>
+  </div>`;
+}
+
+/* ---------------- 商户中心 ---------------- */
+function pageMerchant() {
+  if (!token()) { pageJoin(true); return; }
+  api("GET", "/payplat/merchant/info").then(j => {
+    const m = j && j.data;
+    if (!m) { pageJoin(true); return; }
+    if (m.status === 0) {
+      $("#app").innerHTML = `<div class="glass auth-wrap" style="text-align:center">
+        <div class="success-ic" style="background:linear-gradient(135deg,#f0b429,#ffd66b)">⏳</div>
+        <h2>入驻申请审核中</h2><p class="sub">站点「${esc(m.site_name)}」已提交，平台会尽快完成审核</p>
+        <button class="btn btn-ghost" onclick="location.reload()">刷新状态</button></div>`;
+      return;
+    }
+    if (m.status === 2) {
+      $("#app").innerHTML = `<div class="glass auth-wrap">
+        <h2>申请未通过</h2><p class="sub">原因：${esc(m.reject_reason || "不符合入驻要求")}</p>
+        <button class="btn btn-primary" onclick="reApply()">重新提交申请</button></div>`;
+      return;
+    }
+    location.hash = "#/keys";
+  }).catch(e => { if (String(e).includes("unauth")) { setToken(""); pageJoin(true); } else toast(e.message || e, true); });
+}
+window.reApply = function () {
+  api("POST", "/payplat/merchant/apply", { site_name: "重新申请" })
+    .then(() => toast("已重新提交")).catch(e => toast(e.message || e, true));
+};
+
+function mcShell(active, inner) {
+  $("#app").innerHTML = `
+  <div class="mc">
+    <aside class="glass">
+      <a href="#/keys" class="${active === "keys" ? "on" : ""}">🔑 API 密钥</a>
+      <a href="#/orders" class="${active === "orders" ? "on" : ""}">📄 交易流水</a>
+      <a href="#/withdraw" class="${active === "withdraw" ? "on" : ""}">💸 提现申请</a>
+      <a href="javascript:void(0)" onclick="logout()">🚪 退出登录</a>
+    </aside>
+    <div class="glass mc-body">${inner}</div>
+  </div>`;
+}
+window.logout = function () { setToken(""); toast("已退出登录"); location.hash = "#/"; };
+
+function pageJoin(loginOnly) {
+  const isReg = !loginOnly;
+  $("#app").innerHTML = `
+  <div class="glass auth-wrap">
+    <h2>${isReg ? "商户入驻" : "商户登录"}</h2>
+    <p class="sub">使用 Lynli 主站统一账号（邮箱 + 密码）${isReg ? "，登录后提交入驻申请" : ""}</p>
+    <label class="f"><span>邮箱</span><input class="input" id="au-email" type="email" placeholder="you@example.com"></label>
+    <label class="f"><span>密码</span><input class="input" id="au-pass" type="password" placeholder="••••••••"></label>
+    <button class="btn btn-primary" style="width:100%" id="au-btn" onclick="doAuth(${isReg})">${isReg ? "登录并申请入驻" : "登 录"}</button>
+    <p class="auth-switch">${isReg ? "已有商户身份？" : "还没有入驻？"}<a href="#/${isReg ? "merchant" : "merchant/join"}">${isReg ? "去登录" : "申请入驻"}</a></p>
+  </div>`;
+}
+window.doAuth = async function (withApply) {
+  const email = ($("#au-email").value || "").trim().toLowerCase();
+  const pass = $("#au-pass").value || "";
+  if (!email || !pass) { toast("请输入邮箱和密码", true); return; }
+  const btn = $("#au-btn"); btn.disabled = true;
+  try {
+    const j = await api("POST", "/passport/auth/login", { email, password: pass });
+    if (!(j.data && j.data.token)) throw new Error(j.message || "登录失败");
+    setToken(j.data.token);
+    toast("登录成功");
+    if (withApply) {
+      const site = prompt("请输入你的站点名称：");
+      if (!site) { location.hash = "#/keys"; return; }
+      const url = prompt("站点地址（可选，如 https://…）：") || "";
+      const notify = prompt("异步通知地址 notify_url（可选）：") || "";
+      await api("POST", "/payplat/merchant/apply", { site_name: site, site_url: url, contact: email, notify_url: notify });
+      toast("入驻申请已提交");
+    }
+    location.hash = "#/keys";
+  } catch (e) { toast(e.message || e, true); }
+  btn.disabled = false;
+};
+
+async function pageKeys() {
+  if (!token()) { pageJoin(true); return; }
+  mcShell("keys", '<div class="empty" style="color:var(--ink-3)">加载中…</div>');
+  try {
+    const j = await api("GET", "/payplat/merchant/info");
+    const m = j.data;
+    if (!m || m.status !== 1) { location.hash = "#/merchant"; return; }
+    mcShell("keys", `
+      <div class="kpis">
+        <div class="kpi" style="background:rgba(255,255,255,.7);border:1px solid var(--line);border-radius:14px">
+          <b>¥${money(m.balance)}</b><span>可提现余额</span></div>
+        <div class="kpi" style="background:rgba(255,255,255,.7);border:1px solid var(--line);border-radius:14px">
+          <b>¥${money(m.total_amount)}</b><span>累计流水</span></div>
+        <div class="kpi" style="background:rgba(255,255,255,.7);border:1px solid var(--line);border-radius:14px">
+          <b>¥${money(m.total_fee)}</b><span>累计手续费</span></div>
+        <div class="kpi" style="background:rgba(255,255,255,.7);border:1px solid var(--line);border-radius:14px">
+          <b>¥${money(m.frozen)}</b><span>提现冻结</span></div>
+      </div>
+      <h3 style="margin-bottom:6px">站点信息</h3>
+      <p style="font-size:14px;color:var(--ink-2)">${esc(m.site_name)} · ${esc(m.site_url || "未填写站点地址")} ·
+        <span class="badge ok">已通过审核</span></p>
+      <h3 style="margin:20px 0 4px">API 密钥</h3>
+      <p style="font-size:13px;color:var(--ink-3)">请妥善保管 app_secret，泄露将导致资金风险。点击可复制。</p>
+      <div class="key-box"><span style="font-weight:700;color:var(--ink-2)">app_id</span><code>${esc(m.app_id)}</code>
+        <button class="btn btn-ghost btn-sm" onclick="copyTxt('${esc(m.app_id)}')">复制</button></div>
+      <div class="key-box"><span style="font-weight:700;color:var(--ink-2)">app_secret</span><code>${esc(m.app_secret)}</code>
+        <button class="btn btn-ghost btn-sm" onclick="copyTxt('${esc(m.app_secret)}')">复制</button></div>`);
+  } catch (e) { toast(e.message || e, true); }
+}
+window.copyTxt = function (t) {
+  (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject())
+    .then(() => toast("已复制到剪贴板"))
+    .catch(() => {
+      const ta = document.createElement("textarea");
+      ta.value = t; document.body.appendChild(ta); ta.select();
+      document.execCommand("copy"); ta.remove(); toast("已复制到剪贴板");
+    });
+};
+
+async function pageOrders() {
+  if (!token()) { pageJoin(true); return; }
+  mcShell("orders", '<p style="color:var(--ink-3)">加载中…</p>');
+  try {
+    const j = await api("GET", "/payplat/merchant/orders");
+    const list = j.data || [];
+    const ST = { 0: ["待支付", "warn"], 1: ["已支付", "ok"], 2: ["已结算", "ok"] };
+    mcShell("orders", `
+      <h3 style="margin-bottom:14px">交易流水（近 100 笔）</h3>
+      <div class="tbl-wrap"><table class="tbl">
+        <thead><tr><th>平台单号</th><th>商户单号</th><th>金额</th><th>手续费</th><th>入账</th><th>方式</th><th>状态</th><th>时间</th></tr></thead>
+        <tbody>${list.length ? list.map(o => `<tr>
+          <td><code>${esc(o.trade_no)}</code></td><td>${esc(o.out_trade_no)}</td>
+          <td><b>¥${money(o.amount)}</b></td><td>¥${money(o.fee)}</td><td>¥${money(o.credit)}</td>
+          <td>${o.method === "usdt" ? "USDT" : "支付宝"}</td>
+          <td><span class="badge ${(ST[o.status] || [,"flat"])[1]}">${(ST[o.status] || ["未知"])[0]}</span></td>
+          <td>${new Date(o.created_at * 1000).toLocaleString("zh-CN", { hour12: false })}</td>
+        </tr>`).join("") : '<tr><td colspan="8" style="text-align:center;color:var(--ink-3)">暂无交易</td></tr>'}</tbody>
+      </table></div>`);
+  } catch (e) { toast(e.message || e, true); }
+}
+
+async function pageWithdraw() {
+  if (!token()) { pageJoin(true); return; }
+  mcShell("withdraw", '<p style="color:var(--ink-3)">加载中…</p>');
+  try {
+    const [jm, jw] = await Promise.all([api("GET", "/payplat/merchant/info"), api("GET", "/payplat/merchant/withdrawals")]);
+    const m = jm.data, list = jw.data || [];
+    const ST = { 0: ["待审核", "warn"], 1: ["已打款", "ok"], 2: ["已拒绝", "flat"] };
+    mcShell("withdraw", `
+      <h3 style="margin-bottom:4px">申请提现</h3>
+      <p style="font-size:13px;color:var(--ink-3)">当前可提现余额 <b style="color:var(--blue)">¥${money(m.balance)}</b> · 最低 1 元 · 提交后平台审核打款</p>
+      <div style="display:flex;gap:10px;margin:14px 0 24px;flex-wrap:wrap">
+        <input class="input" id="wd-amt" type="number" min="1" step="0.01" placeholder="提现金额（元）" style="max-width:170px">
+        <input class="input" id="wd-acc" placeholder="收款账号（支付宝账号）" style="max-width:250px">
+        <button class="btn btn-primary" onclick="doWithdraw()">提交申请</button>
+      </div>
+      <h3 style="margin-bottom:12px">提现记录</h3>
+      <div class="tbl-wrap"><table class="tbl">
+        <thead><tr><th>ID</th><th>金额</th><th>收款账号</th><th>状态</th><th>备注</th><th>时间</th></tr></thead>
+        <tbody>${list.length ? list.map(w => `<tr>
+          <td>#${w.id}</td><td><b>¥${money(w.amount)}</b></td><td>${esc(w.account)}</td>
+          <td><span class="badge ${(ST[w.status] || [,"flat"])[1]}">${(ST[w.status] || ["未知"])[0]}</span></td>
+          <td>${esc(w.remark || "-")}</td>
+          <td>${new Date(w.created_at * 1000).toLocaleString("zh-CN", { hour12: false })}</td>
+        </tr>`).join("") : '<tr><td colspan="6" style="text-align:center;color:var(--ink-3)">暂无提现记录</td></tr>'}</tbody>
+      </table></div>`);
+  } catch (e) { toast(e.message || e, true); }
+}
+window.doWithdraw = async function () {
+  const amount = parseFloat($("#wd-amt").value), account = ($("#wd-acc").value || "").trim();
+  if (!(amount >= 1)) { toast("请输入有效金额（最低 1 元）", true); return; }
+  if (!account) { toast("请输入收款账号", true); return; }
+  try {
+    await api("POST", "/payplat/merchant/withdraw", { amount, account, account_type: "alipay" });
+    toast("提现申请已提交，等待审核");
+    pageWithdraw();
+  } catch (e) { toast(e.message || e, true); }
+};
+
+/* ---------------- 收银台 ---------------- */
+let _pollTimer = null;
+function pageCashier() {
+  const q = new URLSearchParams((location.hash.split("?")[1] || ""));
+  const no = q.get("trade_no") || "";
+  $("#app").innerHTML = `<div class="glass cashier"><p style="color:var(--ink-3)">加载中…</p></div>`;
+  clearInterval(_pollTimer);
+  if (!no) { $("#app").innerHTML = `<div class="glass cashier"><h2>缺少订单号</h2><p class="pay-state">请从商户站跳转，或在首页搜索框输入订单号</p></div>`; return; }
+  renderCashier(no);
+}
+async function renderCashier(no, state) {
+  try {
+    const j = state || await api("GET", "/payplat/cashier/status?trade_no=" + encodeURIComponent(no));
+    if (!j || j.code === 404) {
+      $("#app").innerHTML = `<div class="glass cashier"><h2>订单不存在</h2><p class="pay-state">请核对订单号：${esc(no)}</p></div>`;
+      return;
+    }
+    const d = j;
+    if (d.paid || d.status >= 2) {
+      clearInterval(_pollTimer);
+      $("#app").innerHTML = `<div class="glass cashier">
+        <div class="success-ic">✓</div><h2>支付成功</h2>
+        <div class="amt">¥${money(d.amount)}</div>
+        <p class="name">${esc(d.name || "")} · 单号 ${esc(d.trade_no)}</p>
+        <p class="pay-state">货款已按 90% 自动计入商户余额</p>
+        <button class="btn btn-primary" style="margin-top:18px" onclick="location.hash='#/'">返回首页</button></div>`;
+      return;
+    }
+    let payPart;
+    if (d.method === "usdt") {
+      payPart = `
+        <h3 style="margin-bottom:10px">TRC20 · USDT 转账</h3>
+        <div class="usdt-addr"><code id="usdt-addr">正在获取收款地址…</code>
+          <button class="btn btn-ghost btn-sm" id="usdt-copy" style="display:none" onclick="copyTxt(document.getElementById('usdt-addr').textContent)">复制</button></div>
+        <p style="font-size:12.5px;color:var(--ink-3)">请向以上地址转账对应金额，链上确认后自动到账（约 1 分钟）</p>`;
+    } else {
+      payPart = `
+        <h3 style="margin-bottom:12px">支付宝扫码支付</h3>
+        <div class="qr-box"><img id="alipay-qr" alt="支付宝收款码"></div>
+        <p style="font-size:12.5px;color:var(--ink-3)">请使用支付宝 App 扫一扫完成支付</p>`;
+    }
+    $("#app").innerHTML = `<div class="glass cashier">
+      <span class="badge ok">晴天收银台</span>
+      <div class="amt">¥${money(d.amount)}</div>
+      <p class="name">${esc(d.name || "")} · 单号 ${esc(d.trade_no)}</p>
+      ${payPart}
+      <p class="pay-state"><span class="dot"></span>等待支付确认中，页面每 3 秒自动刷新…</p>
+      <button class="btn btn-ghost btn-sm" style="margin-top:12px" onclick="renderCashier('${esc(no)}')">手动刷新</button>
+    </div>`;
+    if (d.method !== "usdt" && d.payurl) {
+      const QR = "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=" + encodeURIComponent(d.payurl);
+      $("#alipay-qr").src = QR;
+    }
+    if (d.method === "usdt" && d.address) {
+      const el = $("#usdt-addr");
+      if (el) { el.textContent = d.address + "（网络 " + (d.network || "TRC20") + "）"; $("#usdt-copy").style.display = ""; }
+    }
+  } catch (e) {
+    $("#app").innerHTML = `<div class="glass cashier"><h2>加载失败</h2><p class="pay-state">${esc(String(e.message || e).slice(0, 80))}</p></div>`;
+  }
+  // 3 秒轮询查单
+  clearInterval(_pollTimer);
+  _pollTimer = setInterval(async () => {
+    try {
+      const j = await api("GET", "/payplat/cashier/status?trade_no=" + encodeURIComponent(no));
+      if (j && (j.paid || j.status >= 2)) { toast("支付成功！"); renderCashier(no, j); }
+    } catch (e) { /* 静默重试 */ }
+  }, 3000);
+}
+window.renderCashier = renderCashier;
+
+/* ---------------- 启动 ---------------- */
+startCosmos();
+window.addEventListener("hashchange", nav);
+nav();
