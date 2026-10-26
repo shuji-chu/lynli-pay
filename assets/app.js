@@ -517,32 +517,48 @@ function pageSupport() {
   $("#app").innerHTML = `
   <div class="glass" style="max-width:800px;margin:40px auto;padding:40px;border-radius:24px;">
     <div style="text-align:center;margin-bottom:40px;">
+      <div style="display:inline-flex;justify-content:center;align-items:center;width:64px;height:64px;background:#e8f1ff;color:var(--blue);border-radius:50%;margin-bottom:16px;">
+        <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+      </div>
       <h2 style="font-size:28px;color:var(--ink);margin-bottom:12px;">帮助与支持</h2>
       <p class="sub">遇到问题？查看常见问题，或联系我们的官方客服。</p>
     </div>
 
     <div style="display:grid;gap:16px;margin-bottom:40px;">
       <div style="padding:20px;border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,0.6);backdrop-filter:blur(10px);">
-        <h3 style="font-size:16px;margin-bottom:10px;color:var(--ink);">如何接入晴天支付？</h3>
+        <h3 style="font-size:16px;margin-bottom:10px;color:var(--ink);display:flex;align-items:center;gap:8px;">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+          如何接入晴天支付？
+        </h3>
         <p style="font-size:14px;color:var(--ink-2);line-height:1.6;">登录后前往「商户入驻」，填写站点名称即可生成专属 app_id 与 app_secret，随后即可调用网关。</p>
       </div>
 
       <div style="padding:20px;border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,0.6);backdrop-filter:blur(10px);">
-        <h3 style="font-size:16px;margin-bottom:10px;color:var(--ink);">提现多久到账？</h3>
+        <h3 style="font-size:16px;margin-bottom:10px;color:var(--ink);display:flex;align-items:center;gap:8px;">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>
+          提现多久到账？
+        </h3>
         <p style="font-size:14px;color:var(--ink-2);line-height:1.6;">提现申请提交后由平台人工审核（通常 1-2 小时内），审核通过后自动打款至您的支付宝账号。</p>
       </div>
 
       <div style="padding:20px;border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,0.6);backdrop-filter:blur(10px);">
-        <h3 style="font-size:16px;margin-bottom:10px;color:var(--ink);">支付回调没有收到？</h3>
+        <h3 style="font-size:16px;margin-bottom:10px;color:var(--ink);display:flex;align-items:center;gap:8px;">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+          支付回调没有收到？
+        </h3>
         <p style="font-size:14px;color:var(--ink-2);line-height:1.6;">请检查您的服务器 443/80 端口是否对外开放，以及是否有防火墙拦截了平台的异步通知 IP。建议查看开发者文档的回调说明。</p>
       </div>
     </div>
 
     <div style="text-align:center;padding:36px 20px;border-radius:20px;background:linear-gradient(135deg, var(--blue) 0%, #1a56db 100%);color:#fff;box-shadow:0 10px 25px rgba(30,111,217,0.2);">
+      <div style="display:inline-flex;justify-content:center;align-items:center;width:48px;height:48px;background:rgba(255,255,255,0.2);border-radius:50%;margin-bottom:16px;">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="#fff"><path d="M21.5 4.5l-19 7.4c-1 .4-1 1.8 0 2.2l4.8 1.8 2.2 6.7c.3.9 1.4 1.1 2 .4l2.6-2.9 4.5 3.3c.8.6 1.9.1 2.1-.8l3.5-16.3c.2-1-.8-1.9-1.7-1.5zm-4.7 4.1l-7.5 6.8-.3 3.3-1.4-4.4 9.2-5.7z"/></svg>
+      </div>
       <h3 style="font-size:20px;margin-bottom:12px;color:#fff;">没有找到答案？</h3>
       <p style="font-size:14px;opacity:0.9;margin-bottom:24px;">我们的客服团队在线为你解答疑惑</p>
-      <a href="https://t.me/nzzf" target="_blank" class="btn" style="background:#fff;color:var(--blue);display:inline-flex;align-items:center;justify-content:center;padding:12px 24px;font-weight:600;border-radius:12px;text-decoration:none;">
-        ✈️ 联系 Telegram 客服
+      <a href="https://t.me/nzzf" target="_blank" class="btn" style="background:#fff;color:var(--blue);display:inline-flex;align-items:center;justify-content:center;padding:12px 24px;font-weight:600;border-radius:12px;text-decoration:none;gap:8px;">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M21.5 4.5l-19 7.4c-1 .4-1 1.8 0 2.2l4.8 1.8 2.2 6.7c.3.9 1.4 1.1 2 .4l2.6-2.9 4.5 3.3c.8.6 1.9.1 2.1-.8l3.5-16.3c.2-1-.8-1.9-1.7-1.5zm-4.7 4.1l-7.5 6.8-.3 3.3-1.4-4.4 9.2-5.7z"/></svg>
+        联系 Telegram 客服
       </a>
     </div>
   </div>`;
